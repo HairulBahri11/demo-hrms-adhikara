@@ -104,19 +104,11 @@
             dropdownOpen: false,
 
             // Business Flow States
-            liveAttendance: [],
+            liveAttendance: [], // Stores attendance from PWA
             isPayrollPublished: false,
-            clientOvertimeRequests: [
-                { id: 'OV-01', name: 'Hairul Bahri', shift: 'Lembur Malam (2 Jam)', date: '04 Okt 2026', status: 'Menunggu Persetujuan Klien' },
-                { id: 'OV-02', name: 'Budi Santoso', shift: 'Lembur Weekend (4 Jam)', date: '03 Okt 2026', status: 'Disetujui Klien' }
-            ],
-            clientInvoices: [
-                { no: 'INV-2610-001', period: 'Oktober 2026', total: 145500000, status: 'Belum Lunas', due: '25 Okt 2026' },
-                { no: 'INV-2609-042', period: 'September 2026', total: 142000000, status: 'Lunas', due: '25 Sep 2026' }
-            ],
 
             // PWA States
-            pwaTab: 'Beranda',
+            pwaTab: 'Beranda', // Beranda, Pengajuan, Slip
             pwaPinUnlocked: false,
             pwaPinError: false,
 
@@ -124,9 +116,9 @@
             mainEmployee: {
                 name: 'Hairul Bahri',
                 email: 'hairulb876@gmail.com',
-                client: 'PT Bank Mandiri (Persero) Tbk',
-                location: 'Menara Mandiri, Jakarta Selatan',
-                position: 'Fullstack Developer / Security Officer',
+                client: 'PT Bank Mandiri',
+                location: 'KC Situbondo',
+                position: 'Security Officer',
                 gajiBruto: 4500000,
                 bpjs: 135000,
                 pph21: 20000,
@@ -166,20 +158,26 @@
             'Laporan': 'fa-chart-line', 'Pekerja Aktif': 'fa-users-gear', 'Kehadiran': 'fa-clipboard-user', 'Persetujuan Lembur': 'fa-user-clock', 'Tagihan': 'fa-receipt'
         };
 
+        // Dynamic Dummy Data Generator for generic tables
         function getTableDataForMenu(menu) {
             const dataMap = {
-                'Klien': { cols: ['ID', 'Nama Klien Korporat', 'Bidang Industri', 'PIC & Kontak', 'Status'], rows: [['KLN-001', 'PT Bank Mandiri (Persero) Tbk', 'Perbankan & Keuangan', 'Bpk. Rian Utama (021-52991000)', 'Aktif'], ['KLN-002', 'PT Telkom Indonesia (Persero) Tbk', 'Telekomunikasi', 'Ibu Siska Melati (021-4521888)', 'Aktif']] },
-                'Lokasi klien': { cols: ['Klien', 'Nama Lokasi / Gedung', 'Radius Geofence', 'Status'], rows: [['PT Bank Mandiri', 'Menara Mandiri, Jl. Jend. Sudirman Kav. 54-55', '100m', 'Aktif'], ['PT Telkom', 'Telkom Landmark Tower, Gatot Subroto', '100m', 'Aktif']] },
-                'PKS': { cols: ['Klien', 'No Kontrak PKS', 'Tanggal Mulai', 'Termin Bayar', 'Status'], rows: [['PT Bank Mandiri', 'PKS/BM/2026/01', '01 Jan 2026', '14 Hari', 'Aktif']] },
-                'Karyawan': { cols: ['NIK', 'Nama Lengkap', 'Email', 'Penempatan Klien', 'Status'], rows: [['35120512...', state.mainEmployee.name, state.mainEmployee.email, state.mainEmployee.client, 'Aktif'], ['35120520...', 'Budi Santoso', 'budi@gmail.com', 'PT Telkom Indonesia', 'Aktif']] },
-                'Pengguna': { cols: ['Nama Pengguna', 'Email', 'Peran (Role)', 'Status'], rows: [['Super Admin', 'admin@adhikara.co.id', 'Super Admin', 'Aktif'], [state.mainEmployee.name, state.mainEmployee.email, 'Karyawan', 'Aktif'], ['Bpk. Rian Utama', 'rian@mandiri.co.id', 'Klien', 'Aktif']] },
+                'Klien': { cols: ['ID', 'Nama Klien', 'Industri', 'Status'], rows: [['KLN-001', 'PT Bank Mandiri', 'Perbankan', 'Aktif'], ['KLN-002', 'PT Telkom', 'Telekomunikasi', 'Aktif']] },
+                'Lokasi klien': { cols: ['Klien', 'Nama Lokasi', 'Geofence Radius', 'Status'], rows: [['PT Bank Mandiri', 'KC Situbondo', '100m', 'Aktif'], ['PT Bank Mandiri', 'KCP Besuki', '50m', 'Aktif']] },
+                'PKS': { cols: ['Klien', 'No PKS', 'Tgl Mulai', 'Tgl Selesai', 'Status'], rows: [['PT Bank Mandiri', 'PKS/BM/2026/01', '01-Jan-2026', '31-Des-2026', 'Aktif']] },
+                'Karyawan': { cols: ['NIK', 'Nama', 'Email', 'Klien Saat Ini', 'Status'], rows: [['351211...', state.mainEmployee.name, state.mainEmployee.email, state.mainEmployee.client, 'Aktif'], ['351212...', 'Budi Santoso', 'budi@gmail.com', 'PT Telkom', 'Aktif']] },
+                'Pengguna': { cols: ['Nama', 'Email', 'Peran', 'Status'], rows: [['Super Admin', 'admin@adhikara.co.id', 'Super Admin', 'Aktif'], [state.mainEmployee.name, state.mainEmployee.email, 'Karyawan', 'Aktif']] },
+                'Penagihan': { cols: ['No Invoice', 'Klien', 'Periode', 'Total Tagihan', 'Status'], rows: [['INV-2610-001', 'PT Bank Mandiri', 'Okt 2026', 'Rp 145.500.000', 'Draft']] },
+                'Tagihan': { cols: ['No Invoice', 'Periode', 'Jatuh Tempo', 'Total', 'Status'], rows: [['INV-2610-001', 'Okt 2026', '14 Nov 2026', 'Rp 145.500.000', 'Menunggu Pembayaran']] },
             };
+
+            // Default fallback generic generator
             if (!dataMap[menu]) {
                 return {
-                    cols: ['ID Referensi', 'Keterangan Parameter ' + menu, 'Update Terakhir', 'Status'],
+                    cols: ['ID Referensi', 'Keterangan ' + menu, 'Tgl Update', 'Status'],
                     rows: [
-                        ['REF-101', 'Konfigurasi standar ' + menu + ' utama', '05 Okt 2026', 'Aktif'],
-                        ['REF-102', 'Konfigurasi tambahan ' + menu + ' cabang', '05 Okt 2026', 'Aktif']
+                        ['REF-001', 'Data dummy untuk ' + menu + ' 1', '05 Okt 2026', 'Aktif'],
+                        ['REF-002', 'Data dummy untuk ' + menu + ' 2', '05 Okt 2026', 'Aktif'],
+                        ['REF-003', 'Data dummy untuk ' + menu + ' 3', '04 Okt 2026', 'Nonaktif']
                     ]
                 }
             }
@@ -189,10 +187,11 @@
         function setRole(role) {
             state.role = role;
             state.dropdownOpen = false;
+            // Set default menus per role
             if (role === 'Super Admin') state.menu = 'Dashboard';
             if (role === 'HRD') state.menu = 'Absensi';
             if (role === 'Finance') state.menu = 'Penggajian';
-            if (role === 'Klien') state.menu = 'Dashboard';
+            if (role === 'Klien') state.menu = 'Tagihan';
             if (role === 'Karyawan PWA') state.pwaTab = 'Beranda';
             render();
         }
@@ -211,7 +210,7 @@
             return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
         }
 
-        // Business Actions
+        // --- Business Logic Actions ---
         function pwaAbsenMasuk() {
             const now = new Date();
             const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
@@ -222,7 +221,7 @@
                 status: 'Hadir (Dalam Geofence)',
                 location: state.mainEmployee.location
             });
-            alert('Absen Masuk Berhasil! Data GPS & Selfie telah dicatat dan tersinkronisasi ke HRD & Portal Klien.');
+            alert('Absen Masuk Berhasil! Data telah tersinkronisasi ke HRD.');
             render();
         }
 
@@ -230,24 +229,6 @@
             if (confirm('Kalkulasi Gaji Massal untuk periode Oktober 2026?\nData akan dikunci dan Slip diterbitkan ke aplikasi karyawan.')) {
                 state.isPayrollPublished = true;
                 alert('Berhasil! Slip gaji telah dipublikasikan.');
-                render();
-            }
-        }
-
-        function clientApproveOvertime(id) {
-            const req = state.clientOvertimeRequests.find(r => r.id === id);
-            if (req) {
-                req.status = 'Disetujui Klien';
-                alert(`Pengajuan lembur ${req.name} berhasil disetujui! Dilanjutkan ke persetujuan HRD.`);
-                render();
-            }
-        }
-
-        function clientPayInvoice(no) {
-            const inv = state.clientInvoices.find(i => i.no === no);
-            if (inv) {
-                inv.status = 'Lunas';
-                alert(`Invoice ${no} berhasil dikonfirmasi pembayarannya oleh Klien! Diverifikasi oleh Finance Adhikara.`);
                 render();
             }
         }
@@ -275,7 +256,7 @@
         function renderHeader() {
             return `
                 <header class="bg-white h-16 shadow-sm border-b border-gray-100 flex items-center justify-between px-6 z-20 flex-shrink-0">
-                    <div class="text-gray-500 text-sm font-medium">Senin, 5 Oktober 2026 | Zona Waktu: Asia/Jakarta</div>
+                    <div class="text-gray-500 text-sm font-medium">Senin, 5 Oktober 2026</div>
                     <div class="flex items-center space-x-4 relative">
                         <button onclick="setRole('Karyawan PWA')" class="bg-navy-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition hover:bg-navy-800 shadow-sm flex items-center">
                             <i class="fa-solid fa-mobile-screen mr-2"></i> Coba PWA Karyawan
@@ -284,10 +265,10 @@
                         <div class="relative">
                             <button onclick="toggleDropdown()" class="flex items-center space-x-3 hover:bg-gray-50 p-1.5 rounded-lg transition text-left border border-transparent hover:border-gray-200">
                                 <div class="w-8 h-8 rounded-full bg-gold text-navy-900 flex justify-center items-center font-bold text-xs shadow-sm">
-                                    ${state.role === 'Klien' ? 'BM' : state.role.substring(0, 2).toUpperCase()}
+                                    ${state.role.substring(0, 2).toUpperCase()}
                                 </div>
                                 <div class="leading-tight pr-2">
-                                    <p class="text-sm font-bold text-gray-800">${state.role === 'Klien' ? 'Bpk. Rian Utama (Bank Mandiri)' : state.role}</p>
+                                    <p class="text-sm font-bold text-gray-800">${state.role === 'Klien' ? 'Bpk. Ahmad (Klien)' : state.role}</p>
                                     <p class="text-[10px] text-gray-500">Ganti Peran <i class="fa-solid fa-chevron-down ml-1"></i></p>
                                 </div>
                             </button>
@@ -296,7 +277,7 @@
                                     ${['Super Admin', 'HRD', 'Finance', 'Klien'].map(r => `
                                         <button onclick="setRole('${r}')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center ${state.role === r ? 'font-bold text-navy-900 bg-gray-50' : 'text-gray-600'}">
                                             <i class="fa-solid ${r === 'Super Admin' ? 'fa-crown' : r === 'HRD' ? 'fa-users' : r === 'Finance' ? 'fa-calculator' : 'fa-building'} w-6 text-center text-gray-400"></i>
-                                            ${r === 'Klien' ? 'Portal Klien (Bank Mandiri)' : r}
+                                            ${r}
                                         </button>
                                     `).join('')}
                                 </div>
@@ -352,125 +333,7 @@
         }
 
         function renderMainContent() {
-            // PORTAL KLIEN REAL-WORLD FOCUSED
-            if (state.role === 'Klien') {
-                if (state.menu === 'Dashboard' || state.menu === 'Pekerja Aktif') {
-                    return `
-                        <div class="max-w-6xl mx-auto space-y-6 fade-in">
-                            <div class="bg-gradient-to-r from-navy-900 to-navy-700 rounded-2xl p-8 text-white shadow-lg flex justify-between items-center">
-                                <div>
-                                    <span class="bg-gold text-navy-900 text-[10px] font-bold px-2.5 py-1 rounded uppercase tracking-wider">Klien Korporat VIP</span>
-                                    <h2 class="text-3xl font-bold mt-2">PT Bank Mandiri (Persero) Tbk</h2>
-                                    <p class="text-gray-300 text-sm mt-1">Menara Mandiri, Jl. Jend. Sudirman Kav. 54-55, Jakarta Selatan</p>
-                                </div>
-                                <div class="text-right bg-white/10 backdrop-blur px-5 py-3 rounded-xl border border-white/10">
-                                    <p class="text-xs text-gold font-bold">Total Tenaga Alih Daya</p>
-                                    <p class="text-2xl font-extrabold">84 Orang</p>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-3 gap-6">
-                                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                                    <p class="text-xs text-gray-400 font-bold uppercase">Kehadiran Hari Ini</p>
-                                    <h3 class="text-2xl font-bold text-navy-900 mt-1">98.8% <span class="text-xs text-green-600 font-normal">(83/84 Hadir)</span></h3>
-                                </div>
-                                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                                    <p class="text-xs text-gray-400 font-bold uppercase">Persetujuan Lembur</p>
-                                    <h3 class="text-2xl font-bold text-orange-500 mt-1">1 Pending</h3>
-                                </div>
-                                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                                    <p class="text-xs text-gray-400 font-bold uppercase">Tagihan Bulan Ini</p>
-                                    <h3 class="text-2xl font-bold text-navy-900 mt-1">Rp 145.5 Juta</h3>
-                                </div>
-                            </div>
-
-                            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                                <div class="p-5 border-b border-gray-100 flex justify-between items-center">
-                                    <h3 class="font-bold text-gray-800 text-base">Daftar Tenaga Alih Daya Penempatan Aktif</h3>
-                                    <span class="text-xs text-gray-500">Satpam & Cleaning Service</span>
-                                </div>
-                                <table class="w-full text-left text-sm">
-                                    <thead class="bg-gray-50 text-gray-600 font-semibold border-b">
-                                        <tr><th class="px-6 py-3">Nama Pekerja</th><th class="px-6 py-3">Posisi</th><th class="px-6 py-3">Lokasi Penempatan</th><th class="px-6 py-3">Status Absen Hari Ini</th></tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-gray-100">
-                                        <tr class="hover:bg-gray-50">
-                                            <td class="px-6 py-3 font-bold text-navy-900">Hairul Bahri</td>
-                                            <td class="px-6 py-3">Security Officer / Dev</td>
-                                            <td class="px-6 py-3">KC Situbondo / Menara Mandiri</td>
-                                            <td class="px-6 py-3"><span class="bg-green-100 text-green-700 text-xs px-2.5 py-1 rounded-full font-bold">Hadir (07:52 WIB)</span></td>
-                                        </tr>
-                                        <tr class="hover:bg-gray-50">
-                                            <td class="px-6 py-3 font-bold text-navy-900">Budi Santoso</td>
-                                            <td class="px-6 py-3">Senior Security</td>
-                                            <td class="px-6 py-3">Menara Mandiri Lt. 12</td>
-                                            <td class="px-6 py-3"><span class="bg-green-100 text-green-700 text-xs px-2.5 py-1 rounded-full font-bold">Hadir (07:30 WIB)</span></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    `;
-                }
-                if (state.menu === 'Persetujuan Lembur') {
-                    return `
-                        <div class="max-w-6xl mx-auto space-y-6 fade-in">
-                            <div><h2 class="text-2xl font-bold text-gray-800">Persetujuan Lembur Karyawan</h2><p class="text-sm text-gray-500">Lembur disetujui oleh Klien terlebih dahulu sebelum diteruskan ke HRD.</p></div>
-                            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                                <table class="w-full text-left text-sm">
-                                    <thead class="bg-gray-50 text-gray-600 font-semibold border-b">
-                                        <tr><th class="px-6 py-3">ID Pengajuan</th><th class="px-6 py-3">Nama Karyawan</th><th class="px-6 py-3">Keterangan Shift</th><th class="px-6 py-3">Tanggal</th><th class="px-6 py-3">Status</th><th class="px-6 py-3 text-right">Aksi</th></tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-gray-100">
-                                        ${state.clientOvertimeRequests.map(r => `
-                                            <tr class="hover:bg-gray-50">
-                                                <td class="px-6 py-3 font-mono font-bold text-navy-900">${r.id}</td>
-                                                <td class="px-6 py-3 font-bold">${r.name}</td>
-                                                <td class="px-6 py-3">${r.shift}</td>
-                                                <td class="px-6 py-3 text-gray-500">${r.date}</td>
-                                                <td class="px-6 py-3"><span class="px-2.5 py-1 rounded-full text-xs font-bold ${r.status.includes('Disetujui') ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">${r.status}</span></td>
-                                                <td class="px-6 py-3 text-right">
-                                                    ${r.status.includes('Menunggu') ? `<button onclick="clientApproveOvertime('${r.id}')" class="bg-navy-900 hover:bg-navy-800 text-white px-3 py-1.5 rounded text-xs font-bold shadow">Setujui Lembur</button>` : `<span class="text-xs text-green-600 font-bold"><i class="fa-solid fa-check mr-1"></i> Selesai</span>`}
-                                                </td>
-                                            </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    `;
-                }
-                if (state.menu === 'Tagihan') {
-                    return `
-                        <div class="max-w-6xl mx-auto space-y-6 fade-in">
-                            <div><h2 class="text-2xl font-bold text-gray-800">Tagihan & Konfirmasi Pembayaran Invoice</h2><p class="text-sm text-gray-500">Tagihan dibentuk dari slip gaji terkunci ditambah fee jasa dan iuran BPJS perusahaan.</p></div>
-                            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                                <table class="w-full text-left text-sm">
-                                    <thead class="bg-gray-50 text-gray-600 font-semibold border-b">
-                                        <tr><th class="px-6 py-3">No Invoice</th><th class="px-6 py-3">Periode Gaji</th><th class="px-6 py-3">Jatuh Tempo</th><th class="px-6 py-3">Total Tagihan</th><th class="px-6 py-3">Status</th><th class="px-6 py-3 text-right">Aksi Klien</th></tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-gray-100">
-                                        ${state.clientInvoices.map(i => `
-                                            <tr class="hover:bg-gray-50">
-                                                <td class="px-6 py-3 font-mono font-bold text-navy-900">${i.no}</td>
-                                                <td class="px-6 py-3">${i.period}</td>
-                                                <td class="px-6 py-3 text-gray-500">${i.due}</td>
-                                                <td class="px-6 py-3 font-bold text-navy-900">${formatRp(i.total)}</td>
-                                                <td class="px-6 py-3"><span class="px-2.5 py-1 rounded-full text-xs font-bold ${i.status === 'Lunas' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${i.status}</span></td>
-                                                <td class="px-6 py-3 text-right">
-                                                    ${i.status !== 'Lunas' ? `<button onclick="clientPayInvoice('${i.no}')" class="bg-gold hover:bg-gold-dark text-navy-900 px-3 py-1.5 rounded text-xs font-bold shadow">Konfirmasi Bayar</button>` : `<span class="text-xs text-gray-400 font-medium">Terverifikasi</span>`}
-                                                </td>
-                                            </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    `;
-                }
-            }
-
-            // SUPER ADMIN DASHBOARD
+            // 1. Super Admin Dashboard (Exact PRD/Screenshot replication)
             if (state.role === 'Super Admin' && state.menu === 'Dashboard') {
                 return `
                     <div class="max-w-6xl mx-auto space-y-6">
@@ -484,10 +347,11 @@
                                 <button class="bg-navy-700/80 hover:bg-navy-600 text-gold border border-gold/30 px-4 py-2 rounded font-medium transition"><i class="fa-solid fa-plus mr-1"></i> Klien</button>
                                 <button class="bg-navy-700/80 hover:bg-navy-600 text-gold border border-gold/30 px-4 py-2 rounded font-medium transition"><i class="fa-solid fa-plus mr-1"></i> PKS</button>
                             </div>
+                            <div class="absolute right-0 top-0 w-64 h-full opacity-10 pointer-events-none"><div class="absolute right-10 top-10 w-64 h-64 rounded-full border-2 border-white"></div></div>
                         </div>
 
                         <div class="grid grid-cols-6 gap-4">
-                            ${[{ l: 'Klien aktif', v: '3' }, { l: 'Lokasi kerja', v: '5' }, { l: 'PKS aktif', v: '3' }, { l: 'Posisi aktif', v: '4' }, { l: 'Shift aktif', v: '3' }, { l: 'Pengguna', v: '120' }]
+                            ${[{ l: 'Klien aktif', v: '2' }, { l: 'Lokasi kerja', v: '5' }, { l: 'PKS aktif', v: '2' }, { l: 'Posisi aktif', v: '4' }, { l: 'Shift aktif', v: '3' }, { l: 'Pengguna', v: '120' }]
                         .map(s => `<div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100"><h3 class="text-2xl font-bold text-navy-900">${s.v}</h3><p class="text-[11px] text-gray-500 font-bold uppercase mt-1">${s.l}</p></div>`).join('')}
                         </div>
 
@@ -506,7 +370,7 @@
                 `;
             }
 
-            // HRD - ABSENSI
+            // 2. HRD - Absensi (Reads global state)
             if (state.role === 'HRD' && state.menu === 'Absensi') {
                 return `
                     <div class="max-w-6xl mx-auto space-y-6">
@@ -526,7 +390,7 @@
                                         </tr>
                                     `).join('')}
                                     <tr class="hover:bg-gray-50">
-                                        <td class="px-6 py-4 font-bold text-gray-800">Budi Santoso</td><td class="px-6 py-4">07:30 WIB</td><td class="px-6 py-4 text-gray-600"><i class="fa-solid fa-map-pin text-red-400 mr-1"></i> Menara Mandiri<br><span class="text-xs">PT Bank Mandiri (Persero) Tbk</span></td><td class="px-6 py-4"><span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[11px] font-bold border border-green-200"><i class="fa-solid fa-check mr-1"></i> Hadir (Dalam Geofence)</span></td>
+                                        <td class="px-6 py-4 font-bold text-gray-800">Budi Santoso</td><td class="px-6 py-4">07:30 WIB</td><td class="px-6 py-4 text-gray-600"><i class="fa-solid fa-map-pin text-red-400 mr-1"></i> KC Situbondo<br><span class="text-xs">PT Bank Mandiri</span></td><td class="px-6 py-4"><span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[11px] font-bold border border-green-200"><i class="fa-solid fa-check mr-1"></i> Hadir (Dalam Geofence)</span></td>
                                     </tr>
                                     ${state.liveAttendance.length === 0 ? `<tr><td colspan="4" class="px-6 py-8 text-center text-gray-400"><i class="fa-solid fa-mobile-screen mb-2 text-2xl"></i><br>Coba lakukan "Absen Masuk" dari Mode PWA Karyawan untuk melihat data masuk ke sini.</td></tr>` : ''}
                                 </tbody>
@@ -536,7 +400,7 @@
                 `;
             }
 
-            // FINANCE - PENGGAJIAN
+            // 3. Finance - Penggajian (Trigger state change)
             if (state.role === 'Finance' && state.menu === 'Penggajian') {
                 return `
                     <div class="max-w-6xl mx-auto space-y-6">
@@ -567,7 +431,7 @@
                 `;
             }
 
-            // DEFAULT GENERIC TABLE
+            // 4. Default Generic Data Table (For all other menus)
             const tableData = getTableDataForMenu(state.menu);
             return `
                 <div class="max-w-6xl mx-auto space-y-6 fade-in">
@@ -601,7 +465,7 @@
             return `
                 <div class="h-full w-full bg-gray-900 flex flex-col items-center justify-center relative p-4">
                     <div class="absolute top-6 left-6 text-white z-10 flex space-x-4">
-                        <button onclick="setRole('Super Admin')" class="bg-white/10 hover:bg-white/25 backdrop-blur border border-white/20 text-white px-4 py-2 rounded-lg text-sm font-bold transition flex items-center shadow-lg">
+                        <button onclick="setRole('Super Admin')" class="bg-white/10 hover:bg-white/20 backdrop-blur border border-white/20 text-white px-4 py-2 rounded-lg text-sm font-bold transition flex items-center">
                             <i class="fa-solid fa-arrow-left mr-2"></i> Keluar PWA (Ke Backoffice)
                         </button>
                     </div>
@@ -609,6 +473,7 @@
                     <div class="mobile-container shadow-2xl">
                         <div class="mobile-notch"></div>
                         
+                        <!-- PWA Header -->
                         <div class="bg-navy-900 pt-12 pb-6 px-6 text-white shrink-0 relative z-10 shadow-md">
                             <div class="flex justify-between items-start">
                                 <div>
@@ -622,14 +487,16 @@
                             </div>
                         </div>
 
+                        <!-- PWA Content -->
                         <div class="flex-1 bg-gray-50 overflow-y-auto pb-24 p-5 custom-scrollbar fade-in">
                             ${getPWAContent()}
                         </div>
 
+                        <!-- PWA Bottom Nav -->
                         <div class="absolute bottom-0 w-full bg-white border-t border-gray-200 flex justify-around items-center h-16 pb-1 z-20">
                             ${['Beranda', 'Pengajuan', 'Slip'].map(tab => `
                                 <button onclick="state.pwaTab='${tab}'; render()" class="flex flex-col items-center w-full space-y-1 transition ${state.pwaTab === tab ? 'text-navy-900 font-bold' : 'text-gray-400 hover:text-gray-600'}">
-                                    <i class="fa-solid ${tab === 'Beranda' ? 'fa-fingerprint' : tab === 'Pengajuan' ? 'fa-file-signature' : 'fa-envelope-open-text'} text-lg${state.pwaTab === tab ? '-mt-1' : ''} transition-all"></i>
+                                    <i class="fa-solid ${tab === 'Beranda' ? 'fa-fingerprint' : tab === 'Pengajuan' ? 'fa-file-signature' : 'fa-envelope-open-text'} text-lg ${state.pwaTab === tab ? '-mt-1' : ''} transition-all"></i>
                                     <span class="text-[10px]">${tab}</span>
                                 </button>
                             `).join('')}
@@ -737,6 +604,7 @@
             return `<div class="p-4 text-center text-gray-500 text-xs mt-10">Fitur ${state.pwaTab} sedang dalam pengembangan simulasi.</div>`;
         }
 
+        // Initialize App
         window.onload = render;
     </script>
 </body>
