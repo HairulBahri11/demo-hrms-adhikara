@@ -95,13 +95,14 @@
 
 <body class="h-screen overflow-hidden text-gray-800 antialiased flex flex-col">
 
-    <div id="app" class="h-full w-full flex"></div>
+    <div id="app" class="h-full w-full flex relative"></div>
 
     <script>
         const state = {
             role: 'Super Admin',
             menu: 'Dashboard',
             dropdownOpen: false,
+            sidebarOpen: false, // State untuk toggle responsive sidebar di mobile
 
             // Business Flow States
             liveAttendance: [],
@@ -189,6 +190,7 @@
         function setRole(role) {
             state.role = role;
             state.dropdownOpen = false;
+            state.sidebarOpen = false;
             if (role === 'Super Admin') state.menu = 'Dashboard';
             if (role === 'HRD') state.menu = 'Absensi';
             if (role === 'Finance') state.menu = 'Penggajian';
@@ -199,11 +201,17 @@
 
         function setMenu(menu) {
             state.menu = menu;
+            state.sidebarOpen = false; // Tutup sidebar otomatis di mobile setelah diklik
             render();
         }
 
         function toggleDropdown() {
             state.dropdownOpen = !state.dropdownOpen;
+            render();
+        }
+
+        function toggleSidebar() {
+            state.sidebarOpen = !state.sidebarOpen;
             render();
         }
 
@@ -274,21 +282,28 @@
 
         function renderHeader() {
             return `
-                <header class="bg-white h-16 shadow-sm border-b border-gray-100 flex items-center justify-between px-6 z-20 flex-shrink-0">
-                    <div class="text-gray-500 text-sm font-medium">Senin, 5 Oktober 2026 | Zona Waktu: Asia/Jakarta</div>
-                    <div class="flex items-center space-x-4 relative">
-                        <button onclick="setRole('Karyawan PWA')" class="bg-navy-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition hover:bg-navy-800 shadow-sm flex items-center">
-                            <i class="fa-solid fa-mobile-screen mr-2"></i> Coba PWA Karyawan
+                <header class="bg-white h-16 shadow-sm border-b border-gray-100 flex items-center justify-between px-4 sm:px-6 z-20 flex-shrink-0">
+                    <div class="flex items-center space-x-3">
+                        <!-- Hamburger Menu untuk Mobile Responsive Sidebar -->
+                        <button onclick="toggleSidebar()" class="lg:hidden text-gray-700 hover:text-navy-900 p-2 rounded-lg focus:outline-none">
+                            <i class="fa-solid fa-bars text-lg"></i>
+                        </button>
+                        <div class="text-gray-500 text-xs sm:text-sm font-medium hidden sm:block">Senin, 5 Oktober 2026 | Asia/Jakarta</div>
+                    </div>
+
+                    <div class="flex items-center space-x-3 relative">
+                        <button onclick="setRole('Karyawan PWA')" class="bg-navy-900 text-white px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition hover:bg-navy-800 shadow-sm flex items-center">
+                            <i class="fa-solid fa-mobile-screen sm:mr-2"></i> <span class="hidden sm:inline">Coba PWA Karyawan</span><span class="sm:hidden">PWA</span>
                         </button>
                         <div class="h-6 w-px bg-gray-200"></div>
                         <div class="relative">
-                            <button onclick="toggleDropdown()" class="flex items-center space-x-3 hover:bg-gray-50 p-1.5 rounded-lg transition text-left border border-transparent hover:border-gray-200">
-                                <div class="w-8 h-8 rounded-full bg-gold text-navy-900 flex justify-center items-center font-bold text-xs shadow-sm">
+                            <button onclick="toggleDropdown()" class="flex items-center space-x-2 hover:bg-gray-50 p-1.5 rounded-lg transition text-left border border-transparent hover:border-gray-200">
+                                <div class="w-8 h-8 rounded-full bg-gold text-navy-900 flex justify-center items-center font-bold text-xs shadow-sm flex-shrink-0">
                                     ${state.role === 'Klien' ? 'BM' : state.role.substring(0, 2).toUpperCase()}
                                 </div>
-                                <div class="leading-tight pr-2">
-                                    <p class="text-sm font-bold text-gray-800">${state.role === 'Klien' ? 'Bpk. Rian Utama (Bank Mandiri)' : state.role}</p>
-                                    <p class="text-[10px] text-gray-500">Ganti Peran <i class="fa-solid fa-chevron-down ml-1"></i></p>
+                                <div class="leading-tight pr-1 hidden md:block">
+                                    <p class="text-xs sm:text-sm font-bold text-gray-800">${state.role === 'Klien' ? 'Bpk. Rian (Mandiri)' : state.role}</p>
+                                    <p class="text-[10px] text-gray-500">Ganti Peran <i class="fa-solid fa-chevron-down ml-0.5"></i></p>
                                 </div>
                             </button>
                             ${state.dropdownOpen ? `
@@ -311,9 +326,12 @@
             const activeMenus = menus[state.role] || menus['Super Admin'];
 
             return `
-                <!-- Sidebar -->
-                <div class="w-64 bg-navy-900 text-gray-300 flex flex-col flex-shrink-0 shadow-xl z-30">
-                    <div class="h-20 flex items-center justify-center bg-white m-3 rounded-lg shadow-sm">
+                <!-- Backdrop untuk mobile saat sidebar terbuka -->
+                ${state.sidebarOpen ? `<div onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-30 lg:hidden"></div>` : ''}
+
+                <!-- Responsive Sidebar -->
+                <div class="fixed lg:static inset-y-0 left-0 transform ${state.sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out w-64 bg-navy-900 text-gray-300 flex flex-col flex-shrink-0 shadow-2xl lg:shadow-xl z-40">
+                    <div class="h-20 flex items-center justify-between bg-white m-3 rounded-lg shadow-sm px-4">
                         <div class="flex items-center space-x-2">
                             <i class="fa-solid fa-dove text-gold text-2xl"></i>
                             <div>
@@ -321,6 +339,10 @@
                                 <p class="text-gold text-[9px] uppercase tracking-widest font-bold leading-tight">Talenta Bangsa</p>
                             </div>
                         </div>
+                        <!-- Tombol close sidebar khusus mobile -->
+                        <button onclick="toggleSidebar()" class="lg:hidden text-gray-500 hover:text-navy-900">
+                            <i class="fa-solid fa-xmark text-lg"></i>
+                        </button>
                     </div>
                     <div class="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pb-6 mt-2">
                         ${activeMenus.map(group => `
@@ -344,7 +366,7 @@
                 <!-- Main Content Wrapper -->
                 <div class="flex-1 flex flex-col overflow-hidden w-full relative bg-gray-50">
                     ${renderHeader()}
-                    <main class="flex-1 overflow-y-auto p-6 lg:p-8 fade-in">
+                    <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 fade-in">
                         ${renderMainContent()}
                     </main>
                 </div>
@@ -357,28 +379,28 @@
                 if (state.menu === 'Dashboard' || state.menu === 'Pekerja Aktif') {
                     return `
                         <div class="max-w-6xl mx-auto space-y-6 fade-in">
-                            <div class="bg-gradient-to-r from-navy-900 to-navy-700 rounded-2xl p-8 text-white shadow-lg flex justify-between items-center">
+                            <div class="bg-gradient-to-r from-navy-900 to-navy-700 rounded-2xl p-6 sm:p-8 text-white shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                                 <div>
                                     <span class="bg-gold text-navy-900 text-[10px] font-bold px-2.5 py-1 rounded uppercase tracking-wider">Klien Korporat VIP</span>
-                                    <h2 class="text-3xl font-bold mt-2">PT Bank Mandiri (Persero) Tbk</h2>
-                                    <p class="text-gray-300 text-sm mt-1">Menara Mandiri, Jl. Jend. Sudirman Kav. 54-55, Jakarta Selatan</p>
+                                    <h2 class="text-2xl sm:text-3xl font-bold mt-2">PT Bank Mandiri (Persero) Tbk</h2>
+                                    <p class="text-gray-300 text-xs sm:text-sm mt-1">Menara Mandiri, Jl. Jend. Sudirman Kav. 54-55, Jakarta Selatan</p>
                                 </div>
-                                <div class="text-right bg-white/10 backdrop-blur px-5 py-3 rounded-xl border border-white/10">
+                                <div class="bg-white/10 backdrop-blur px-5 py-3 rounded-xl border border-white/10 w-full md:w-auto text-left md:text-right">
                                     <p class="text-xs text-gold font-bold">Total Tenaga Alih Daya</p>
                                     <p class="text-2xl font-extrabold">84 Orang</p>
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-3 gap-6">
-                                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+                                <div class="bg-white p-5 sm:p-6 rounded-xl shadow-sm border border-gray-100">
                                     <p class="text-xs text-gray-400 font-bold uppercase">Kehadiran Hari Ini</p>
                                     <h3 class="text-2xl font-bold text-navy-900 mt-1">98.8% <span class="text-xs text-green-600 font-normal">(83/84 Hadir)</span></h3>
                                 </div>
-                                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                                <div class="bg-white p-5 sm:p-6 rounded-xl shadow-sm border border-gray-100">
                                     <p class="text-xs text-gray-400 font-bold uppercase">Persetujuan Lembur</p>
                                     <h3 class="text-2xl font-bold text-orange-500 mt-1">1 Pending</h3>
                                 </div>
-                                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                                <div class="bg-white p-5 sm:p-6 rounded-xl shadow-sm border border-gray-100">
                                     <p class="text-xs text-gray-400 font-bold uppercase">Tagihan Bulan Ini</p>
                                     <h3 class="text-2xl font-bold text-navy-900 mt-1">Rp 145.5 Juta</h3>
                                 </div>
@@ -386,28 +408,30 @@
 
                             <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                                 <div class="p-5 border-b border-gray-100 flex justify-between items-center">
-                                    <h3 class="font-bold text-gray-800 text-base">Daftar Tenaga Alih Daya Penempatan Aktif</h3>
-                                    <span class="text-xs text-gray-500">Satpam & Cleaning Service</span>
+                                    <h3 class="font-bold text-gray-800 text-sm sm:text-base">Daftar Tenaga Alih Daya Penempatan Aktif</h3>
+                                    <span class="text-xs text-gray-500 hidden sm:inline">Satpam & Cleaning Service</span>
                                 </div>
-                                <table class="w-full text-left text-sm">
-                                    <thead class="bg-gray-50 text-gray-600 font-semibold border-b">
-                                        <tr><th class="px-6 py-3">Nama Pekerja</th><th class="px-6 py-3">Posisi</th><th class="px-6 py-3">Lokasi Penempatan</th><th class="px-6 py-3">Status Absen Hari Ini</th></tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-gray-100">
-                                        <tr class="hover:bg-gray-50">
-                                            <td class="px-6 py-3 font-bold text-navy-900">Hairul Bahri</td>
-                                            <td class="px-6 py-3">Security Officer / Dev</td>
-                                            <td class="px-6 py-3">KC Situbondo / Menara Mandiri</td>
-                                            <td class="px-6 py-3"><span class="bg-green-100 text-green-700 text-xs px-2.5 py-1 rounded-full font-bold">Hadir (07:52 WIB)</span></td>
-                                        </tr>
-                                        <tr class="hover:bg-gray-50">
-                                            <td class="px-6 py-3 font-bold text-navy-900">Budi Santoso</td>
-                                            <td class="px-6 py-3">Senior Security</td>
-                                            <td class="px-6 py-3">Menara Mandiri Lt. 12</td>
-                                            <td class="px-6 py-3"><span class="bg-green-100 text-green-700 text-xs px-2.5 py-1 rounded-full font-bold">Hadir (07:30 WIB)</span></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left text-sm min-w-[500px]">
+                                        <thead class="bg-gray-50 text-gray-600 font-semibold border-b">
+                                            <tr><th class="px-6 py-3">Nama Pekerja</th><th class="px-6 py-3">Posisi</th><th class="px-6 py-3">Lokasi Penempatan</th><th class="px-6 py-3">Status Absen Hari Ini</th></tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-100">
+                                            <tr class="hover:bg-gray-50">
+                                                <td class="px-6 py-3 font-bold text-navy-900">Hairul Bahri</td>
+                                                <td class="px-6 py-3">Security Officer / Dev</td>
+                                                <td class="px-6 py-3">KC Situbondo / Menara Mandiri</td>
+                                                <td class="px-6 py-3"><span class="bg-green-100 text-green-700 text-xs px-2.5 py-1 rounded-full font-bold">Hadir (07:52 WIB)</span></td>
+                                            </tr>
+                                            <tr class="hover:bg-gray-50">
+                                                <td class="px-6 py-3 font-bold text-navy-900">Budi Santoso</td>
+                                                <td class="px-6 py-3">Senior Security</td>
+                                                <td class="px-6 py-3">Menara Mandiri Lt. 12</td>
+                                                <td class="px-6 py-3"><span class="bg-green-100 text-green-700 text-xs px-2.5 py-1 rounded-full font-bold">Hadir (07:30 WIB)</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -415,27 +439,29 @@
                 if (state.menu === 'Persetujuan Lembur') {
                     return `
                         <div class="max-w-6xl mx-auto space-y-6 fade-in">
-                            <div><h2 class="text-2xl font-bold text-gray-800">Persetujuan Lembur Karyawan</h2><p class="text-sm text-gray-500">Lembur disetujui oleh Klien terlebih dahulu sebelum diteruskan ke HRD.</p></div>
+                            <div><h2 class="text-xl sm:text-2xl font-bold text-gray-800">Persetujuan Lembur Karyawan</h2><p class="text-xs sm:text-sm text-gray-500">Lembur disetujui oleh Klien terlebih dahulu sebelum diteruskan ke HRD.</p></div>
                             <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                                <table class="w-full text-left text-sm">
-                                    <thead class="bg-gray-50 text-gray-600 font-semibold border-b">
-                                        <tr><th class="px-6 py-3">ID Pengajuan</th><th class="px-6 py-3">Nama Karyawan</th><th class="px-6 py-3">Keterangan Shift</th><th class="px-6 py-3">Tanggal</th><th class="px-6 py-3">Status</th><th class="px-6 py-3 text-right">Aksi</th></tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-gray-100">
-                                        ${state.clientOvertimeRequests.map(r => `
-                                            <tr class="hover:bg-gray-50">
-                                                <td class="px-6 py-3 font-mono font-bold text-navy-900">${r.id}</td>
-                                                <td class="px-6 py-3 font-bold">${r.name}</td>
-                                                <td class="px-6 py-3">${r.shift}</td>
-                                                <td class="px-6 py-3 text-gray-500">${r.date}</td>
-                                                <td class="px-6 py-3"><span class="px-2.5 py-1 rounded-full text-xs font-bold ${r.status.includes('Disetujui') ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">${r.status}</span></td>
-                                                <td class="px-6 py-3 text-right">
-                                                    ${r.status.includes('Menunggu') ? `<button onclick="clientApproveOvertime('${r.id}')" class="bg-navy-900 hover:bg-navy-800 text-white px-3 py-1.5 rounded text-xs font-bold shadow">Setujui Lembur</button>` : `<span class="text-xs text-green-600 font-bold"><i class="fa-solid fa-check mr-1"></i> Selesai</span>`}
-                                                </td>
-                                            </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left text-sm min-w-[600px]">
+                                        <thead class="bg-gray-50 text-gray-600 font-semibold border-b">
+                                            <tr><th class="px-6 py-3">ID Pengajuan</th><th class="px-6 py-3">Nama Karyawan</th><th class="px-6 py-3">Keterangan Shift</th><th class="px-6 py-3">Tanggal</th><th class="px-6 py-3">Status</th><th class="px-6 py-3 text-right">Aksi</th></tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-100">
+                                            ${state.clientOvertimeRequests.map(r => `
+                                                <tr class="hover:bg-gray-50">
+                                                    <td class="px-6 py-3 font-mono font-bold text-navy-900">${r.id}</td>
+                                                    <td class="px-6 py-3 font-bold">${r.name}</td>
+                                                    <td class="px-6 py-3">${r.shift}</td>
+                                                    <td class="px-6 py-3 text-gray-500">${r.date}</td>
+                                                    <td class="px-6 py-3"><span class="px-2.5 py-1 rounded-full text-xs font-bold ${r.status.includes('Disetujui') ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">${r.status}</span></td>
+                                                    <td class="px-6 py-3 text-right">
+                                                        ${r.status.includes('Menunggu') ? `<button onclick="clientApproveOvertime('${r.id}')" class="bg-navy-900 hover:bg-navy-800 text-white px-3 py-1.5 rounded text-xs font-bold shadow">Setujui Lembur</button>` : `<span class="text-xs text-green-600 font-bold"><i class="fa-solid fa-check mr-1"></i> Selesai</span>`}
+                                                    </td>
+                                                </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -443,27 +469,29 @@
                 if (state.menu === 'Tagihan') {
                     return `
                         <div class="max-w-6xl mx-auto space-y-6 fade-in">
-                            <div><h2 class="text-2xl font-bold text-gray-800">Tagihan & Konfirmasi Pembayaran Invoice</h2><p class="text-sm text-gray-500">Tagihan dibentuk dari slip gaji terkunci ditambah fee jasa dan iuran BPJS perusahaan.</p></div>
+                            <div><h2 class="text-xl sm:text-2xl font-bold text-gray-800">Tagihan & Konfirmasi Pembayaran Invoice</h2><p class="text-xs sm:text-sm text-gray-500">Tagihan dibentuk dari slip gaji terkunci ditambah fee jasa dan iuran BPJS perusahaan.</p></div>
                             <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                                <table class="w-full text-left text-sm">
-                                    <thead class="bg-gray-50 text-gray-600 font-semibold border-b">
-                                        <tr><th class="px-6 py-3">No Invoice</th><th class="px-6 py-3">Periode Gaji</th><th class="px-6 py-3">Jatuh Tempo</th><th class="px-6 py-3">Total Tagihan</th><th class="px-6 py-3">Status</th><th class="px-6 py-3 text-right">Aksi Klien</th></tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-gray-100">
-                                        ${state.clientInvoices.map(i => `
-                                            <tr class="hover:bg-gray-50">
-                                                <td class="px-6 py-3 font-mono font-bold text-navy-900">${i.no}</td>
-                                                <td class="px-6 py-3">${i.period}</td>
-                                                <td class="px-6 py-3 text-gray-500">${i.due}</td>
-                                                <td class="px-6 py-3 font-bold text-navy-900">${formatRp(i.total)}</td>
-                                                <td class="px-6 py-3"><span class="px-2.5 py-1 rounded-full text-xs font-bold ${i.status === 'Lunas' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${i.status}</span></td>
-                                                <td class="px-6 py-3 text-right">
-                                                    ${i.status !== 'Lunas' ? `<button onclick="clientPayInvoice('${i.no}')" class="bg-gold hover:bg-gold-dark text-navy-900 px-3 py-1.5 rounded text-xs font-bold shadow">Konfirmasi Bayar</button>` : `<span class="text-xs text-gray-400 font-medium">Terverifikasi</span>`}
-                                                </td>
-                                            </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left text-sm min-w-[600px]">
+                                        <thead class="bg-gray-50 text-gray-600 font-semibold border-b">
+                                            <tr><th class="px-6 py-3">No Invoice</th><th class="px-6 py-3">Periode Gaji</th><th class="px-6 py-3">Jatuh Tempo</th><th class="px-6 py-3">Total Tagihan</th><th class="px-6 py-3">Status</th><th class="px-6 py-3 text-right">Aksi Klien</th></tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-100">
+                                            ${state.clientInvoices.map(i => `
+                                                <tr class="hover:bg-gray-50">
+                                                    <td class="px-6 py-3 font-mono font-bold text-navy-900">${i.no}</td>
+                                                    <td class="px-6 py-3">${i.period}</td>
+                                                    <td class="px-6 py-3 text-gray-500">${i.due}</td>
+                                                    <td class="px-6 py-3 font-bold text-navy-900">${formatRp(i.total)}</td>
+                                                    <td class="px-6 py-3"><span class="px-2.5 py-1 rounded-full text-xs font-bold ${i.status === 'Lunas' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${i.status}</span></td>
+                                                    <td class="px-6 py-3 text-right">
+                                                        ${i.status !== 'Lunas' ? `<button onclick="clientPayInvoice('${i.no}')" class="bg-gold hover:bg-gold-dark text-navy-900 px-3 py-1.5 rounded text-xs font-bold shadow">Konfirmasi Bayar</button>` : `<span class="text-xs text-gray-400 font-medium">Terverifikasi</span>`}
+                                                    </td>
+                                                </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -474,32 +502,32 @@
             if (state.role === 'Super Admin' && state.menu === 'Dashboard') {
                 return `
                     <div class="max-w-6xl mx-auto space-y-6">
-                        <div class="bg-navy-800 rounded-2xl p-8 relative overflow-hidden flex justify-between items-center shadow-lg">
+                        <div class="bg-navy-800 rounded-2xl p-6 sm:p-8 relative overflow-hidden flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-lg">
                             <div class="relative z-10">
                                 <p class="text-gold text-[10px] font-bold tracking-widest uppercase mb-1">DASHBOARD</p>
-                                <h2 class="text-3xl font-bold text-white mb-2">Selamat pagi, Super</h2>
-                                <p class="text-gray-300 text-sm">Ada 4 hal pada master data yang perlu dilengkapi.</p>
+                                <h2 class="text-2xl sm:text-3xl font-bold text-white mb-2">Selamat pagi, Super</h2>
+                                <p class="text-gray-300 text-xs sm:text-sm">Ada 4 hal pada master data yang perlu dilengkapi.</p>
                             </div>
                             <div class="relative z-10 flex space-x-3">
-                                <button class="bg-navy-700/80 hover:bg-navy-600 text-gold border border-gold/30 px-4 py-2 rounded font-medium transition"><i class="fa-solid fa-plus mr-1"></i> Klien</button>
-                                <button class="bg-navy-700/80 hover:bg-navy-600 text-gold border border-gold/30 px-4 py-2 rounded font-medium transition"><i class="fa-solid fa-plus mr-1"></i> PKS</button>
+                                <button class="bg-navy-700/80 hover:bg-navy-600 text-gold border border-gold/30 px-3 sm:px-4 py-2 rounded text-xs sm:text-sm font-medium transition"><i class="fa-solid fa-plus mr-1"></i> Klien</button>
+                                <button class="bg-navy-700/80 hover:bg-navy-600 text-gold border border-gold/30 px-3 sm:px-4 py-2 rounded text-xs sm:text-sm font-medium transition"><i class="fa-solid fa-plus mr-1"></i> PKS</button>
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-6 gap-4">
+                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
                             ${[{ l: 'Klien aktif', v: '3' }, { l: 'Lokasi kerja', v: '5' }, { l: 'PKS aktif', v: '3' }, { l: 'Posisi aktif', v: '4' }, { l: 'Shift aktif', v: '3' }, { l: 'Pengguna', v: '120' }]
-                        .map(s => `<div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100"><h3 class="text-2xl font-bold text-navy-900">${s.v}</h3><p class="text-[11px] text-gray-500 font-bold uppercase mt-1">${s.l}</p></div>`).join('')}
+                        .map(s => `<div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100"><h3 class="text-xl sm:text-2xl font-bold text-navy-900">${s.v}</h3><p class="text-[10px] sm:text-[11px] text-gray-500 font-bold uppercase mt-1">${s.l}</p></div>`).join('')}
                         </div>
 
                         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                             <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                                <h3 class="font-bold text-gray-800">Kelengkapan Master Data</h3>
-                                <span class="bg-orange-100 text-orange-700 text-xs font-bold px-3 py-1 rounded-full">4 perlu perhatian</span>
+                                <h3 class="font-bold text-gray-800 text-sm sm:text-base">Kelengkapan Master Data</h3>
+                                <span class="bg-orange-100 text-orange-700 text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-full">4 perlu perhatian</span>
                             </div>
                             <div class="divide-y divide-gray-100">
-                                <div class="p-4 flex items-center hover:bg-gray-50"><i class="fa-solid fa-circle-check text-green-500 text-lg w-8"></i><div><p class="text-sm font-bold">Tarif BPJS berlaku</p><p class="text-xs text-gray-500">5 program telah dikonfigurasi.</p></div></div>
-                                <div class="p-4 flex items-center hover:bg-gray-50"><i class="fa-solid fa-circle-exclamation text-orange-500 text-lg w-8"></i><div><p class="text-sm font-bold">Hari libur 2026</p><p class="text-xs text-gray-500">Belum ada hari libur diset.</p></div></div>
-                                <div class="p-4 flex items-center hover:bg-gray-50"><i class="fa-solid fa-circle-check text-green-500 text-lg w-8"></i><div><p class="text-sm font-bold">Tarif TER PPh21</p><p class="text-xs text-gray-500">Kategori A, B, C terisi.</p></div></div>
+                                <div class="p-4 flex items-center hover:bg-gray-50"><i class="fa-solid fa-circle-check text-green-500 text-lg w-8"></i><div><p class="text-xs sm:text-sm font-bold">Tarif BPJS berlaku</p><p class="text-[11px] sm:text-xs text-gray-500">5 program telah dikonfigurasi.</p></div></div>
+                                <div class="p-4 flex items-center hover:bg-gray-50"><i class="fa-solid fa-circle-exclamation text-orange-500 text-lg w-8"></i><div><p class="text-xs sm:text-sm font-bold">Hari libur 2026</p><p class="text-[11px] sm:text-xs text-gray-500">Belum ada hari libur diset.</p></div></div>
+                                <div class="p-4 flex items-center hover:bg-gray-50"><i class="fa-solid fa-circle-check text-green-500 text-lg w-8"></i><div><p class="text-xs sm:text-sm font-bold">Tarif TER PPh21</p><p class="text-[11px] sm:text-xs text-gray-500">Kategori A, B, C terisi.</p></div></div>
                             </div>
                         </div>
                     </div>
@@ -510,27 +538,29 @@
             if (state.role === 'HRD' && state.menu === 'Absensi') {
                 return `
                     <div class="max-w-6xl mx-auto space-y-6">
-                        <div><h2 class="text-2xl font-bold text-gray-800">Monitor Absensi Geofence</h2><p class="text-sm text-gray-500">Data realtime tersinkronisasi dari PWA Karyawan.</p></div>
+                        <div><h2 class="text-xl sm:text-2xl font-bold text-gray-800">Monitor Absensi Geofence</h2><p class="text-xs sm:text-sm text-gray-500">Data realtime tersinkronisasi dari PWA Karyawan.</p></div>
                         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                            <table class="w-full text-left text-sm">
-                                <thead class="bg-navy-900 text-white font-semibold">
-                                    <tr><th class="px-6 py-4">Karyawan</th><th class="px-6 py-4">Waktu</th><th class="px-6 py-4">Lokasi & Klien</th><th class="px-6 py-4">Status Geofence</th></tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-100">
-                                    ${state.liveAttendance.map(a => `
-                                        <tr class="bg-blue-50/40 hover:bg-blue-50 transition">
-                                            <td class="px-6 py-4 font-bold text-gray-800">${a.name}</td>
-                                            <td class="px-6 py-4 font-medium text-navy-900">${a.time}</td>
-                                            <td class="px-6 py-4 text-gray-600"><i class="fa-solid fa-map-pin text-red-400 mr-1"></i> ${a.location}<br><span class="text-xs">${a.client}</span></td>
-                                            <td class="px-6 py-4"><span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[11px] font-bold border border-green-200"><i class="fa-solid fa-check mr-1"></i> ${a.status}</span></td>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-sm min-w-[600px]">
+                                    <thead class="bg-navy-900 text-white font-semibold">
+                                        <tr><th class="px-6 py-4">Karyawan</th><th class="px-6 py-4">Waktu</th><th class="px-6 py-4">Lokasi & Klien</th><th class="px-6 py-4">Status Geofence</th></tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100">
+                                        ${state.liveAttendance.map(a => `
+                                            <tr class="bg-blue-50/40 hover:bg-blue-50 transition">
+                                                <td class="px-6 py-4 font-bold text-gray-800">${a.name}</td>
+                                                <td class="px-6 py-4 font-medium text-navy-900">${a.time}</td>
+                                                <td class="px-6 py-4 text-gray-600"><i class="fa-solid fa-map-pin text-red-400 mr-1"></i> ${a.location}<br><span class="text-xs">${a.client}</span></td>
+                                                <td class="px-6 py-4"><span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[11px] font-bold border border-green-200"><i class="fa-solid fa-check mr-1"></i> ${a.status}</span></td>
+                                            </tr>
+                                        `).join('')}
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-6 py-4 font-bold text-gray-800">Budi Santoso</td><td class="px-6 py-4">07:30 WIB</td><td class="px-6 py-4 text-gray-600"><i class="fa-solid fa-map-pin text-red-400 mr-1"></i> Menara Mandiri<br><span class="text-xs">PT Bank Mandiri (Persero) Tbk</span></td><td class="px-6 py-4"><span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[11px] font-bold border border-green-200"><i class="fa-solid fa-check mr-1"></i> Hadir (Dalam Geofence)</span></td>
                                         </tr>
-                                    `).join('')}
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="px-6 py-4 font-bold text-gray-800">Budi Santoso</td><td class="px-6 py-4">07:30 WIB</td><td class="px-6 py-4 text-gray-600"><i class="fa-solid fa-map-pin text-red-400 mr-1"></i> Menara Mandiri<br><span class="text-xs">PT Bank Mandiri (Persero) Tbk</span></td><td class="px-6 py-4"><span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[11px] font-bold border border-green-200"><i class="fa-solid fa-check mr-1"></i> Hadir (Dalam Geofence)</span></td>
-                                    </tr>
-                                    ${state.liveAttendance.length === 0 ? `<tr><td colspan="4" class="px-6 py-8 text-center text-gray-400"><i class="fa-solid fa-mobile-screen mb-2 text-2xl"></i><br>Coba lakukan "Absen Masuk" dari Mode PWA Karyawan untuk melihat data masuk ke sini.</td></tr>` : ''}
-                                </tbody>
-                            </table>
+                                        ${state.liveAttendance.length === 0 ? `<tr><td colspan="4" class="px-6 py-8 text-center text-gray-400"><i class="fa-solid fa-mobile-screen mb-2 text-2xl"></i><br>Coba lakukan "Absen Masuk" dari Mode PWA Karyawan untuk melihat data masuk ke sini.</td></tr>` : ''}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -540,28 +570,30 @@
             if (state.role === 'Finance' && state.menu === 'Penggajian') {
                 return `
                     <div class="max-w-6xl mx-auto space-y-6">
-                        <div class="flex justify-between items-center">
-                            <div><h2 class="text-2xl font-bold text-gray-800">Siklus Penggajian Okt 2026</h2><p class="text-sm text-gray-500">Kalkulasi Prorata, BPJS, PPh21 TER otomatis.</p></div>
-                            <button onclick="financePublishPayroll()" class="${state.isPayrollPublished ? 'bg-gray-400' : 'bg-navy-900 hover:bg-navy-800 shadow-lg'} text-white px-5 py-2.5 rounded-lg font-bold text-sm transition" ${state.isPayrollPublished ? 'disabled' : ''}>
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div><h2 class="text-xl sm:text-2xl font-bold text-gray-800">Siklus Penggajian Okt 2026</h2><p class="text-xs sm:text-sm text-gray-500">Kalkulasi Prorata, BPJS, PPh21 TER otomatis.</p></div>
+                            <button onclick="financePublishPayroll()" class="${state.isPayrollPublished ? 'bg-gray-400' : 'bg-navy-900 hover:bg-navy-800 shadow-lg'} text-white px-4 sm:px-5 py-2.5 rounded-lg font-bold text-xs sm:text-sm transition w-full sm:w-auto" ${state.isPayrollPublished ? 'disabled' : ''}>
                                 <i class="fa-solid ${state.isPayrollPublished ? 'fa-lock' : 'fa-calculator'} mr-2"></i> ${state.isPayrollPublished ? 'Periode Terkunci & Slip Terbit' : 'Hitung & Publikasi Slip'}
                             </button>
                         </div>
                         
                         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                            <table class="w-full text-left text-sm">
-                                <thead class="bg-gray-50 text-gray-600 font-semibold border-b">
-                                    <tr><th class="px-6 py-4">Karyawan</th><th class="px-6 py-4 text-right">Bruto (Gp+Tnj)</th><th class="px-6 py-4 text-right">Pot BPJS</th><th class="px-6 py-4 text-right">Pot PPh21 TER</th><th class="px-6 py-4 text-right text-navy-900 font-bold">Take Home Pay</th></tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-100">
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="px-6 py-4 font-bold text-gray-800">${state.mainEmployee.name}<br><span class="text-xs font-normal text-gray-500">${state.mainEmployee.client}</span></td>
-                                        <td class="px-6 py-4 text-right">${formatRp(state.mainEmployee.gajiBruto)}</td>
-                                        <td class="px-6 py-4 text-right text-red-500">-${formatRp(state.mainEmployee.bpjs)}</td>
-                                        <td class="px-6 py-4 text-right text-red-500">-${formatRp(state.mainEmployee.pph21)}</td>
-                                        <td class="px-6 py-4 text-right font-bold text-green-600 text-base">${formatRp(state.mainEmployee.netto)}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-sm min-w-[650px]">
+                                    <thead class="bg-gray-50 text-gray-600 font-semibold border-b">
+                                        <tr><th class="px-6 py-4">Karyawan</th><th class="px-6 py-4 text-right">Bruto (Gp+Tnj)</th><th class="px-6 py-4 text-right">Pot BPJS</th><th class="px-6 py-4 text-right">Pot PPh21 TER</th><th class="px-6 py-4 text-right text-navy-900 font-bold">Take Home Pay</th></tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100">
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-6 py-4 font-bold text-gray-800">${state.mainEmployee.name}<br><span class="text-xs font-normal text-gray-500">${state.mainEmployee.client}</span></td>
+                                            <td class="px-6 py-4 text-right">${formatRp(state.mainEmployee.gajiBruto)}</td>
+                                            <td class="px-6 py-4 text-right text-red-500">-${formatRp(state.mainEmployee.bpjs)}</td>
+                                            <td class="px-6 py-4 text-right text-red-500">-${formatRp(state.mainEmployee.pph21)}</td>
+                                            <td class="px-6 py-4 text-right font-bold text-green-600 text-base">${formatRp(state.mainEmployee.netto)}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -571,27 +603,29 @@
             const tableData = getTableDataForMenu(state.menu);
             return `
                 <div class="max-w-6xl mx-auto space-y-6 fade-in">
-                    <div class="flex justify-between items-center border-b border-gray-200 pb-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-gray-200 pb-4">
                         <div>
-                            <h2 class="text-2xl font-bold text-gray-800 flex items-center"><i class="fa-solid ${icons[state.menu]} text-gold mr-3"></i> ${state.menu}</h2>
-                            <p class="text-sm text-gray-500 mt-1">Data master dan operasional untuk modul ini.</p>
+                            <h2 class="text-xl sm:text-2xl font-bold text-gray-800 flex items-center"><i class="fa-solid ${icons[state.menu]} text-gold mr-3"></i> ${state.menu}</h2>
+                            <p class="text-xs sm:text-sm text-gray-500 mt-1">Data master dan operasional untuk modul ini.</p>
                         </div>
-                        <button class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-bold hover:bg-gray-50 shadow-sm"><i class="fa-solid fa-file-export mr-2"></i> Ekspor</button>
+                        <button class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-xs sm:text-sm font-bold hover:bg-gray-50 shadow-sm"><i class="fa-solid fa-file-export mr-2"></i> Ekspor</button>
                     </div>
 
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                        <table class="w-full text-left text-sm">
-                            <thead class="bg-gray-50 text-gray-600 font-bold border-b border-gray-200">
-                                <tr>${tableData.cols.map(c => `<th class="px-6 py-4 uppercase tracking-wider text-[11px]">${c}</th>`).join('')}</tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100">
-                                ${tableData.rows.map(row => `
-                                    <tr class="hover:bg-gray-50 transition">
-                                        ${row.map((cell, idx) => `<td class="px-6 py-4 ${idx === 0 ? 'font-bold text-navy-900' : ''} ${cell === 'Aktif' ? 'text-green-600 font-bold' : ''}">${cell}</td>`).join('')}
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm min-w-[500px]">
+                                <thead class="bg-gray-50 text-gray-600 font-bold border-b border-gray-200">
+                                    <tr>${tableData.cols.map(c => `<th class="px-6 py-4 uppercase tracking-wider text-[11px]">${c}</th>`).join('')}</tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    ${tableData.rows.map(row => `
+                                        <tr class="hover:bg-gray-50 transition">
+                                            ${row.map((cell, idx) => `<td class="px-6 py-4 ${idx === 0 ? 'font-bold text-navy-900' : ''} ${cell === 'Aktif' ? 'text-green-600 font-bold' : ''}">${cell}</td>`).join('')}
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             `;
@@ -599,10 +633,10 @@
 
         function renderPWA() {
             return `
-                <div class="h-full w-full bg-gray-900 flex flex-col items-center justify-center relative p-4">
-                    <div class="absolute top-6 left-6 text-white z-10 flex space-x-4">
-                        <button onclick="setRole('Super Admin')" class="bg-white/10 hover:bg-white/25 backdrop-blur border border-white/20 text-white px-4 py-2 rounded-lg text-sm font-bold transition flex items-center shadow-lg">
-                            <i class="fa-solid fa-arrow-left mr-2"></i> Keluar PWA (Ke Backoffice)
+                <div class="h-full w-full bg-gray-900 flex flex-col items-center justify-center relative p-2 sm:p-4">
+                    <div class="absolute top-4 sm:top-6 left-4 sm:left-6 text-white z-10 flex space-x-4">
+                        <button onclick="setRole('Super Admin')" class="bg-white/10 hover:bg-white/25 backdrop-blur border border-white/20 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition flex items-center shadow-lg">
+                            <i class="fa-solid fa-arrow-left mr-2"></i> Keluar PWA
                         </button>
                     </div>
 
