@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" class="h-full bg-gray-50">
+<html lang="id">
 
 <head>
     <meta charset="UTF-8">
@@ -17,8 +17,8 @@
                 extend: {
                     fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
                     colors: {
-                        navy: { DEFAULT: '#0a192f', 800: '#060f1c', 700: '#112240', hover: '#1d3557' },
-                        gold: { DEFAULT: '#d4af37', light: '#f3e5ab', dark: '#aa8c2c' },
+                        navy: { 900: '#0B1120', 800: '#141D2F', 700: '#1E293B', hover: '#19243C' },
+                        gold: { DEFAULT: '#D4AF37', light: '#FDE047', dark: '#B49020' },
                     }
                 }
             }
@@ -27,6 +27,7 @@
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #F3F4F6;
         }
 
         ::-webkit-scrollbar {
@@ -47,21 +48,18 @@
             background: #94a3b8;
         }
 
-        /* Mobile Device Mockup Styles */
-        .mobile-mockup {
-            width: 390px;
-            height: 844px;
-            /* iPhone 12/13/14 Pro max size approximation */
-            max-height: 90vh;
-            border: 14px solid #111;
+        .mobile-container {
+            width: 375px;
+            height: 750px;
+            border: 12px solid #111;
             border-radius: 2.5rem;
             position: relative;
             background-color: #f9fafb;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px #333;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            margin: auto;
+            margin: 0 auto;
         }
 
         .mobile-notch {
@@ -69,23 +67,11 @@
             top: 0;
             left: 50%;
             transform: translateX(-50%);
-            width: 150px;
-            height: 28px;
-            background-color: #111;
-            border-bottom-left-radius: 1.25rem;
-            border-bottom-right-radius: 1.25rem;
-            z-index: 50;
-        }
-
-        .mobile-indicator {
-            position: absolute;
-            bottom: 8px;
-            left: 50%;
-            transform: translateX(-50%);
             width: 120px;
-            height: 5px;
-            background-color: #e5e7eb;
-            border-radius: 10px;
+            height: 24px;
+            background-color: #111;
+            border-bottom-left-radius: 1rem;
+            border-bottom-right-radius: 1rem;
             z-index: 50;
         }
 
@@ -96,7 +82,7 @@
         @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: translateY(10px);
+                transform: translateY(5px);
             }
 
             to {
@@ -104,105 +90,109 @@
                 transform: translateY(0);
             }
         }
-
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-        }
     </style>
 </head>
 
-<body class="h-screen overflow-hidden text-gray-800 antialiased flex flex-col bg-gray-100">
+<body class="h-screen overflow-hidden text-gray-800 antialiased flex flex-col">
 
     <div id="app" class="h-full w-full flex"></div>
 
     <script>
-        // GLOBAL STATE & DATA
         const state = {
             role: 'Super Admin',
             menu: 'Dashboard',
             dropdownOpen: false,
 
-            // App Logic States
+            // Business Flow States
+            liveAttendance: [], // Stores attendance from PWA
             isPayrollPublished: false,
-            pwaTab: 'Beranda',
+
+            // PWA States
+            pwaTab: 'Beranda', // Beranda, Pengajuan, Slip
             pwaPinUnlocked: false,
             pwaPinError: false,
-            showToast: false,
-            toastMsg: '',
 
-            // Core Dummy Data
-            employee: {
-                nik: '3512110510260001',
-                name: 'Donny Alamsyah',
+            // Core Dummy Data Reference
+            mainEmployee: {
+                name: 'Hairul Bahri',
                 email: 'hairulb876@gmail.com',
-                role: 'IT Support',
                 client: 'PT Bank Mandiri',
-                location: 'KC Sudirman',
-                gajiPokok: 5500000,
-                bpjs: 165000,
-                pph21TER: 35000,
-                thp: 5300000
-            },
-
-            attendance: [
-                { id: 1, name: 'Budi Santoso', role: 'Security', client: 'PT Bank Mandiri', time: '07:45 WIB', status: 'Hadir', method: 'Geofence' },
-                { id: 2, name: 'Siti Aminah', role: 'Cleaning', client: 'PT Telkom', time: '07:50 WIB', status: 'Hadir', method: 'Geofence' }
-            ],
-
-            clients: [
-                { id: 'KLN-001', name: 'PT Bank Mandiri', industry: 'Perbankan', status: 'Aktif', pks: 'PKS/BM/2026/01' },
-                { id: 'KLN-002', name: 'PT Telkom', industry: 'Telekomunikasi', status: 'Aktif', pks: 'PKS/TLK/2026/03' }
-            ],
-
-            invoices: [
-                { id: 'INV-2610-001', client: 'PT Bank Mandiri', period: 'Oktober 2026', amount: 'Rp 145.500.000', status: 'Menunggu Pembayaran' }
-            ]
+                location: 'KC Situbondo',
+                position: 'Security Officer',
+                gajiBruto: 4500000,
+                bpjs: 135000,
+                pph21: 20000,
+                netto: 4345000
+            }
         };
 
-        // MENU DEFINITIONS
         const menus = {
             'Super Admin': [
                 { category: 'HRMS Backoffice', items: ['Dashboard'] },
                 { category: 'MASTER KLIEN', items: ['Klien', 'Lokasi klien', 'PKS', 'Tarif jasa PKS'] },
                 { category: 'MASTER OPERASIONAL', items: ['Posisi', 'Shift', 'Hari libur'] },
-                { category: 'MASTER GAJI & PAJAK', items: ['Komponen gaji', 'Program BPJS', 'PTKP', 'Tarif TER PPh21'] },
+                { category: 'MASTER GAJI & PAJAK', items: ['Komponen gaji', 'Program BPJS', 'Tarif BPJS', 'PTKP', 'Tarif TER PPh21', 'Tarif progresif PPh21', 'Aturan lembur'] },
                 { category: 'SISTEM', items: ['Pengaturan', 'Pengguna'] }
             ],
             'HRD': [
-                { category: 'OPERASIONAL', items: ['Karyawan', 'Penempatan', 'Jadwal kerja', 'Absensi', 'Pengajuan'] },
+                { category: 'OPERASIONAL', items: ['Dashboard', 'Karyawan', 'Penempatan', 'Jadwal kerja', 'Absensi', 'Pengajuan & Cuti'] },
                 { category: 'REKRUTMEN', items: ['Permintaan TK', 'Kandidat'] }
             ],
             'Finance': [
-                { category: 'FINANSIAL', items: ['Penggajian', 'Penyesuaian Gaji', 'Tagihan', 'Pembayaran'] }
+                { category: 'FINANSIAL', items: ['Dashboard', 'Penggajian', 'Penyesuaian Gaji', 'Penagihan', 'Pembayaran', 'Laporan'] }
             ],
             'Klien': [
-                { category: 'PORTAL KLIEN', items: ['Dashboard Klien', 'Pekerja Aktif', 'Kehadiran Pekerja', 'Invoice & Tagihan'] }
+                { category: 'PORTAL KLIEN', items: ['Dashboard', 'Pekerja Aktif', 'Kehadiran', 'Persetujuan Lembur', 'Tagihan'] }
             ]
         };
 
         const icons = {
             'Dashboard': 'fa-chart-pie', 'Klien': 'fa-building', 'Lokasi klien': 'fa-map-location-dot', 'PKS': 'fa-file-contract',
             'Tarif jasa PKS': 'fa-money-bill-wave', 'Posisi': 'fa-id-badge', 'Shift': 'fa-clock', 'Hari libur': 'fa-calendar-day',
-            'Komponen gaji': 'fa-list-ul', 'Program BPJS': 'fa-shield-heart', 'PTKP': 'fa-users-rays', 'Tarif TER PPh21': 'fa-file-invoice',
+            'Komponen gaji': 'fa-list-ul', 'Program BPJS': 'fa-shield-heart', 'Tarif BPJS': 'fa-percent', 'PTKP': 'fa-users-rays',
+            'Tarif TER PPh21': 'fa-file-invoice', 'Tarif progresif PPh21': 'fa-arrow-trend-up', 'Aturan lembur': 'fa-business-time',
             'Pengaturan': 'fa-gear', 'Pengguna': 'fa-users', 'Karyawan': 'fa-user-tie', 'Penempatan': 'fa-street-view',
-            'Jadwal kerja': 'fa-calendar-alt', 'Absensi': 'fa-fingerprint', 'Pengajuan': 'fa-envelope-open-text',
+            'Jadwal kerja': 'fa-calendar-alt', 'Absensi': 'fa-fingerprint', 'Pengajuan & Cuti': 'fa-envelope-open-text',
             'Permintaan TK': 'fa-user-plus', 'Kandidat': 'fa-users-viewfinder', 'Penggajian': 'fa-file-invoice-dollar',
-            'Penyesuaian Gaji': 'fa-scale-balanced', 'Tagihan': 'fa-file-signature', 'Pembayaran': 'fa-money-check-dollar',
-            'Dashboard Klien': 'fa-chart-bar', 'Pekerja Aktif': 'fa-users-gear', 'Kehadiran Pekerja': 'fa-clipboard-user', 'Invoice & Tagihan': 'fa-receipt'
+            'Penyesuaian Gaji': 'fa-scale-balanced', 'Penagihan': 'fa-file-signature', 'Pembayaran': 'fa-money-check-dollar',
+            'Laporan': 'fa-chart-line', 'Pekerja Aktif': 'fa-users-gear', 'Kehadiran': 'fa-clipboard-user', 'Persetujuan Lembur': 'fa-user-clock', 'Tagihan': 'fa-receipt'
         };
+
+        // Dynamic Dummy Data Generator for generic tables
+        function getTableDataForMenu(menu) {
+            const dataMap = {
+                'Klien': { cols: ['ID', 'Nama Klien', 'Industri', 'Status'], rows: [['KLN-001', 'PT Bank Mandiri', 'Perbankan', 'Aktif'], ['KLN-002', 'PT Telkom', 'Telekomunikasi', 'Aktif']] },
+                'Lokasi klien': { cols: ['Klien', 'Nama Lokasi', 'Geofence Radius', 'Status'], rows: [['PT Bank Mandiri', 'KC Situbondo', '100m', 'Aktif'], ['PT Bank Mandiri', 'KCP Besuki', '50m', 'Aktif']] },
+                'PKS': { cols: ['Klien', 'No PKS', 'Tgl Mulai', 'Tgl Selesai', 'Status'], rows: [['PT Bank Mandiri', 'PKS/BM/2026/01', '01-Jan-2026', '31-Des-2026', 'Aktif']] },
+                'Karyawan': { cols: ['NIK', 'Nama', 'Email', 'Klien Saat Ini', 'Status'], rows: [['351211...', state.mainEmployee.name, state.mainEmployee.email, state.mainEmployee.client, 'Aktif'], ['351212...', 'Budi Santoso', 'budi@gmail.com', 'PT Telkom', 'Aktif']] },
+                'Pengguna': { cols: ['Nama', 'Email', 'Peran', 'Status'], rows: [['Super Admin', 'admin@adhikara.co.id', 'Super Admin', 'Aktif'], [state.mainEmployee.name, state.mainEmployee.email, 'Karyawan', 'Aktif']] },
+                'Penagihan': { cols: ['No Invoice', 'Klien', 'Periode', 'Total Tagihan', 'Status'], rows: [['INV-2610-001', 'PT Bank Mandiri', 'Okt 2026', 'Rp 145.500.000', 'Draft']] },
+                'Tagihan': { cols: ['No Invoice', 'Periode', 'Jatuh Tempo', 'Total', 'Status'], rows: [['INV-2610-001', 'Okt 2026', '14 Nov 2026', 'Rp 145.500.000', 'Menunggu Pembayaran']] },
+            };
+
+            // Default fallback generic generator
+            if (!dataMap[menu]) {
+                return {
+                    cols: ['ID Referensi', 'Keterangan ' + menu, 'Tgl Update', 'Status'],
+                    rows: [
+                        ['REF-001', 'Data dummy untuk ' + menu + ' 1', '05 Okt 2026', 'Aktif'],
+                        ['REF-002', 'Data dummy untuk ' + menu + ' 2', '05 Okt 2026', 'Aktif'],
+                        ['REF-003', 'Data dummy untuk ' + menu + ' 3', '04 Okt 2026', 'Nonaktif']
+                    ]
+                }
+            }
+            return dataMap[menu];
+        }
 
         function setRole(role) {
             state.role = role;
             state.dropdownOpen = false;
+            // Set default menus per role
             if (role === 'Super Admin') state.menu = 'Dashboard';
             if (role === 'HRD') state.menu = 'Absensi';
             if (role === 'Finance') state.menu = 'Penggajian';
-            if (role === 'Klien') state.menu = 'Dashboard Klien';
-            if (role === 'PWA Karyawan') {
-                state.pwaTab = 'Beranda';
-                state.pwaPinUnlocked = false;
-            }
+            if (role === 'Klien') state.menu = 'Tagihan';
+            if (role === 'Karyawan PWA') state.pwaTab = 'Beranda';
             render();
         }
 
@@ -216,49 +206,35 @@
             render();
         }
 
-        function triggerToast(msg) {
-            state.toastMsg = msg;
-            state.showToast = true;
-            render();
-            setTimeout(() => { state.showToast = false; render(); }, 3000);
+        function formatRp(angka) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
         }
 
-        function actionAbsenMasuk() {
-            // Check if already checked in
-            const alreadyIn = state.attendance.find(a => a.name === state.employee.name);
-            if (alreadyIn) {
-                triggerToast('Anda sudah melakukan absen masuk hari ini.');
-                return;
-            }
-
+        // --- Business Logic Actions ---
+        function pwaAbsenMasuk() {
             const now = new Date();
             const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-
-            // Push to global attendance array (simulating DB insert)
-            state.attendance.unshift({
-                id: Date.now(),
-                name: state.employee.name,
-                role: state.employee.role,
-                client: state.employee.client,
+            state.liveAttendance.push({
+                name: state.mainEmployee.name,
+                client: state.mainEmployee.client,
                 time: timeStr + ' WIB',
-                status: 'Hadir',
-                method: 'Geofence (Radius 15m)'
+                status: 'Hadir (Dalam Geofence)',
+                location: state.mainEmployee.location
             });
-
-            triggerToast('Absen Masuk Berhasil! Data tersinkronisasi.');
+            alert('Absen Masuk Berhasil! Data telah tersinkronisasi ke HRD.');
             render();
         }
 
-        function actionPublishPayroll() {
-            if (confirm('Kalkulasi massal selesai. Kunci periode dan publikasikan slip gaji ke PWA Karyawan?')) {
+        function financePublishPayroll() {
+            if (confirm('Kalkulasi Gaji Massal untuk periode Oktober 2026?\nData akan dikunci dan Slip diterbitkan ke aplikasi karyawan.')) {
                 state.isPayrollPublished = true;
-                triggerToast('Slip Gaji berhasil dipublikasikan!');
+                alert('Berhasil! Slip gaji telah dipublikasikan.');
                 render();
             }
         }
 
-        function actionVerifyPin() {
-            const pin = document.getElementById('pwa-pin').value;
+        function pwaVerifyPin() {
+            const pin = document.getElementById('pin-input').value;
             if (pin === '123456') {
                 state.pwaPinUnlocked = true;
                 state.pwaPinError = false;
@@ -270,45 +246,37 @@
 
         function render() {
             const app = document.getElementById('app');
-            if (state.role === 'PWA Karyawan') {
-                app.innerHTML = renderPWAContainer();
+            if (state.role === 'Karyawan PWA') {
+                app.innerHTML = renderPWA();
             } else {
                 app.innerHTML = renderBackoffice();
-            }
-
-            // Toast logic
-            if (state.showToast) {
-                const toast = document.createElement('div');
-                toast.className = 'fixed bottom-5 right-5 bg-navy text-white px-6 py-3 rounded-lg shadow-2xl flex items-center z-50 fade-in border border-gold';
-                toast.innerHTML = `<i class="fa-solid fa-circle-check text-gold mr-3"></i> <span class="font-bold text-sm">${state.toastMsg}</span>`;
-                app.appendChild(toast);
             }
         }
 
         function renderHeader() {
             return `
-                <header class="glass-panel h-16 border-b border-gray-200 flex items-center justify-between px-6 z-20 flex-shrink-0 sticky top-0 shadow-sm">
-                    <div class="text-gray-500 text-sm font-semibold">Senin, 5 Oktober 2026 <span class="text-xs ml-2 bg-gray-100 px-2 py-1 rounded">Asia/Jakarta</span></div>
+                <header class="bg-white h-16 shadow-sm border-b border-gray-100 flex items-center justify-between px-6 z-20 flex-shrink-0">
+                    <div class="text-gray-500 text-sm font-medium">Senin, 5 Oktober 2026</div>
                     <div class="flex items-center space-x-4 relative">
-                        <button onclick="setRole('PWA Karyawan')" class="bg-navy hover:bg-navy-hover text-white border border-navy shadow px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center">
-                            <i class="fa-solid fa-mobile-screen mr-2 text-gold"></i> Buka PWA Karyawan
+                        <button onclick="setRole('Karyawan PWA')" class="bg-navy-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition hover:bg-navy-800 shadow-sm flex items-center">
+                            <i class="fa-solid fa-mobile-screen mr-2"></i> Coba PWA Karyawan
                         </button>
-                        <div class="h-6 w-px bg-gray-300"></div>
+                        <div class="h-6 w-px bg-gray-200"></div>
                         <div class="relative">
-                            <button onclick="toggleDropdown()" class="flex items-center space-x-3 hover:bg-gray-100 p-1.5 rounded-xl transition border border-transparent">
-                                <div class="w-8 h-8 rounded-full bg-navy text-gold flex justify-center items-center font-bold text-xs shadow-inner">
+                            <button onclick="toggleDropdown()" class="flex items-center space-x-3 hover:bg-gray-50 p-1.5 rounded-lg transition text-left border border-transparent hover:border-gray-200">
+                                <div class="w-8 h-8 rounded-full bg-gold text-navy-900 flex justify-center items-center font-bold text-xs shadow-sm">
                                     ${state.role.substring(0, 2).toUpperCase()}
                                 </div>
-                                <div class="leading-tight text-left pr-2">
-                                    <p class="text-sm font-bold text-navy">${state.role === 'Klien' ? 'PT Bank Mandiri' : state.role}</p>
-                                    <p class="text-[10px] text-gray-500 font-semibold">Ubah Role <i class="fa-solid fa-chevron-down ml-1"></i></p>
+                                <div class="leading-tight pr-2">
+                                    <p class="text-sm font-bold text-gray-800">${state.role === 'Klien' ? 'Bpk. Ahmad (Klien)' : state.role}</p>
+                                    <p class="text-[10px] text-gray-500">Ganti Peran <i class="fa-solid fa-chevron-down ml-1"></i></p>
                                 </div>
                             </button>
                             ${state.dropdownOpen ? `
-                                <div class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 py-1 fade-in overflow-hidden">
-                                    ${['Super Admin', 'HRD', 'Finance', 'Klien', 'PWA Karyawan'].map(r => `
-                                        <button onclick="setRole('${r}')" class="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 flex items-center ${state.role === r ? 'font-bold text-navy bg-blue-50/50 border-l-4 border-gold' : 'text-gray-600 border-l-4 border-transparent'}">
-                                            <i class="fa-solid ${r === 'Super Admin' ? 'fa-crown' : r === 'HRD' ? 'fa-users' : r === 'Finance' ? 'fa-calculator' : r === 'Klien' ? 'fa-building' : 'fa-mobile'} w-6 text-center ${state.role === r ? 'text-gold' : 'text-gray-400'}"></i>
+                                <div class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 z-50 py-1 fade-in">
+                                    ${['Super Admin', 'HRD', 'Finance', 'Klien'].map(r => `
+                                        <button onclick="setRole('${r}')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center ${state.role === r ? 'font-bold text-navy-900 bg-gray-50' : 'text-gray-600'}">
+                                            <i class="fa-solid ${r === 'Super Admin' ? 'fa-crown' : r === 'HRD' ? 'fa-users' : r === 'Finance' ? 'fa-calculator' : 'fa-building'} w-6 text-center text-gray-400"></i>
                                             ${r}
                                         </button>
                                     `).join('')}
@@ -325,28 +293,26 @@
 
             return `
                 <!-- Sidebar -->
-                <div class="w-64 bg-navy text-gray-300 flex flex-col flex-shrink-0 shadow-2xl z-30 border-r border-navy-800">
-                    <div class="h-20 flex items-center px-6 border-b border-navy-700 bg-navy-800">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 rounded-lg bg-gold/10 flex items-center justify-center border border-gold/30">
-                                <i class="fa-solid fa-dove text-gold text-xl"></i>
-                            </div>
+                <div class="w-64 bg-navy-900 text-gray-300 flex flex-col flex-shrink-0 shadow-xl z-30">
+                    <div class="h-20 flex items-center justify-center bg-white m-3 rounded-lg shadow-sm">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-dove text-gold text-2xl"></i>
                             <div>
-                                <h1 class="text-white font-bold text-sm tracking-wide leading-tight">ADHIKARA</h1>
-                                <p class="text-gold text-[9px] uppercase tracking-widest font-bold leading-tight">HRMS System</p>
+                                <h1 class="text-navy-900 font-bold text-[14px] tracking-wide leading-tight">ADHIKARA</h1>
+                                <p class="text-gold text-[9px] uppercase tracking-widest font-bold leading-tight">Talenta Bangsa</p>
                             </div>
                         </div>
                     </div>
-                    <div class="flex-1 overflow-y-auto custom-scrollbar pb-6 mt-4">
+                    <div class="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pb-6 mt-2">
                         ${activeMenus.map(group => `
-                            <div class="px-6 mt-6 mb-2">
-                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">${group.category}</p>
+                            <div class="px-6 mt-5 mb-2">
+                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">${group.category}</p>
                             </div>
-                            <ul class="space-y-1 px-3">
+                            <ul class="space-y-0.5">
                                 ${group.items.map(item => `
                                     <li>
-                                        <button onclick="setMenu('${item}')" class="w-full flex items-center px-3 py-2.5 rounded-lg text-[13px] font-semibold transition-all ${state.menu === item ? 'bg-gold text-navy shadow-md' : 'text-gray-400 hover:text-white hover:bg-navy-700'}">
-                                            <i class="fa-solid ${icons[item] || 'fa-circle-dot'} w-6 opacity-90 text-center"></i>
+                                        <button onclick="setMenu('${item}')" class="w-full flex items-center px-6 py-2.5 text-[13px] font-medium transition-colors ${state.menu === item ? 'bg-navy-hover text-white border-l-2 border-gold shadow-inner' : 'text-gray-400 hover:text-white hover:bg-navy-hover/50 border-l-2 border-transparent'}">
+                                            <i class="fa-solid ${icons[item] || 'fa-circle-dot'} w-5 mr-2 opacity-70"></i>
                                             ${item}
                                         </button>
                                     </li>
@@ -356,93 +322,77 @@
                     </div>
                 </div>
 
-                <!-- Main Content -->
-                <div class="flex-1 flex flex-col overflow-hidden w-full relative bg-gray-50/50">
+                <!-- Main Content Wrapper -->
+                <div class="flex-1 flex flex-col overflow-hidden w-full relative bg-gray-50">
                     ${renderHeader()}
                     <main class="flex-1 overflow-y-auto p-6 lg:p-8 fade-in">
-                        ${renderViewContent()}
+                        ${renderMainContent()}
                     </main>
                 </div>
             `;
         }
 
-        function renderViewContent() {
-            // 1. SUPER ADMIN - Dashboard
+        function renderMainContent() {
+            // 1. Super Admin Dashboard (Exact PRD/Screenshot replication)
             if (state.role === 'Super Admin' && state.menu === 'Dashboard') {
                 return `
                     <div class="max-w-6xl mx-auto space-y-6">
-                        <div class="bg-navy rounded-2xl p-8 relative overflow-hidden flex justify-between items-center shadow-xl border border-navy-700">
+                        <div class="bg-navy-800 rounded-2xl p-8 relative overflow-hidden flex justify-between items-center shadow-lg">
                             <div class="relative z-10">
-                                <p class="text-gold text-[10px] font-bold tracking-widest uppercase mb-2">SUPER ADMIN DASHBOARD</p>
-                                <h2 class="text-3xl font-bold text-white mb-2">Selamat pagi, Super Admin</h2>
-                                <p class="text-gray-300 text-sm">Sistem beroperasi normal. Ada 4 hal pada master data yang perlu dilengkapi.</p>
+                                <p class="text-gold text-[10px] font-bold tracking-widest uppercase mb-1">DASHBOARD</p>
+                                <h2 class="text-3xl font-bold text-white mb-2">Selamat pagi, Super</h2>
+                                <p class="text-gray-300 text-sm">Ada 4 hal pada master data yang perlu dilengkapi.</p>
                             </div>
-                            <div class="absolute right-0 top-0 w-1/3 h-full bg-gradient-to-l from-navy-800 to-transparent pointer-events-none"></div>
-                            <i class="fa-solid fa-server absolute right-10 -bottom-10 text-9xl text-white opacity-5"></i>
+                            <div class="relative z-10 flex space-x-3">
+                                <button class="bg-navy-700/80 hover:bg-navy-600 text-gold border border-gold/30 px-4 py-2 rounded font-medium transition"><i class="fa-solid fa-plus mr-1"></i> Klien</button>
+                                <button class="bg-navy-700/80 hover:bg-navy-600 text-gold border border-gold/30 px-4 py-2 rounded font-medium transition"><i class="fa-solid fa-plus mr-1"></i> PKS</button>
+                            </div>
+                            <div class="absolute right-0 top-0 w-64 h-full opacity-10 pointer-events-none"><div class="absolute right-10 top-10 w-64 h-64 rounded-full border-2 border-white"></div></div>
                         </div>
 
-                        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                            ${[{ l: 'Klien Aktif', v: '12', i: 'fa-building' }, { l: 'PKS Aktif', v: '15', i: 'fa-file-contract' }, { l: 'Karyawan', v: '1.250', i: 'fa-users' }, { l: 'Absen Hari Ini', v: '1.100', i: 'fa-fingerprint' }, { l: 'Invoice Unpaid', v: '5', i: 'fa-receipt' }, { l: 'Alerts', v: '2', i: 'fa-bell' }]
-                        .map(s => `
-                                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition">
-                                    <i class="fa-solid ${s.i} text-gold mb-3 text-xl"></i>
-                                    <h3 class="text-2xl font-bold text-navy">${s.v}</h3>
-                                    <p class="text-[10px] text-gray-500 font-bold uppercase mt-1 tracking-wide">${s.l}</p>
-                                </div>
-                            `).join('')}
+                        <div class="grid grid-cols-6 gap-4">
+                            ${[{ l: 'Klien aktif', v: '2' }, { l: 'Lokasi kerja', v: '5' }, { l: 'PKS aktif', v: '2' }, { l: 'Posisi aktif', v: '4' }, { l: 'Shift aktif', v: '3' }, { l: 'Pengguna', v: '120' }]
+                        .map(s => `<div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100"><h3 class="text-2xl font-bold text-navy-900">${s.v}</h3><p class="text-[11px] text-gray-500 font-bold uppercase mt-1">${s.l}</p></div>`).join('')}
                         </div>
 
                         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                            <div class="p-5 border-b border-gray-100 flex justify-between items-center">
-                                <h3 class="font-bold text-navy">Kelengkapan Master Data (PRD Checklist)</h3>
+                            <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                                <h3 class="font-bold text-gray-800">Kelengkapan Master Data</h3>
                                 <span class="bg-orange-100 text-orange-700 text-xs font-bold px-3 py-1 rounded-full">4 perlu perhatian</span>
                             </div>
                             <div class="divide-y divide-gray-100">
-                                <div class="p-4 flex items-center"><i class="fa-solid fa-circle-check text-green-500 text-xl w-10 text-center"></i><div><p class="text-sm font-bold text-gray-800">Tarif BPJS & PTKP</p><p class="text-xs text-gray-500">Parameter tahun 2026 terkonfigurasi.</p></div></div>
-                                <div class="p-4 flex items-center bg-orange-50/30"><i class="fa-solid fa-circle-exclamation text-orange-500 text-xl w-10 text-center"></i><div><p class="text-sm font-bold text-gray-800">Hari Libur 2026</p><p class="text-xs text-gray-500">Belum ada hari libur nasional yang diset.</p></div></div>
-                                <div class="p-4 flex items-center"><i class="fa-solid fa-circle-check text-green-500 text-xl w-10 text-center"></i><div><p class="text-sm font-bold text-gray-800">Tarif TER PPh21</p><p class="text-xs text-gray-500">Tabel Kategori A, B, C telah diimpor sesuai PP 58/2023.</p></div></div>
+                                <div class="p-4 flex items-center hover:bg-gray-50"><i class="fa-solid fa-circle-check text-green-500 text-lg w-8"></i><div><p class="text-sm font-bold">Tarif BPJS berlaku</p><p class="text-xs text-gray-500">5 program telah dikonfigurasi.</p></div></div>
+                                <div class="p-4 flex items-center hover:bg-gray-50"><i class="fa-solid fa-circle-exclamation text-orange-500 text-lg w-8"></i><div><p class="text-sm font-bold">Hari libur 2026</p><p class="text-xs text-gray-500">Belum ada hari libur diset.</p></div></div>
+                                <div class="p-4 flex items-center hover:bg-gray-50"><i class="fa-solid fa-circle-check text-green-500 text-lg w-8"></i><div><p class="text-sm font-bold">Tarif TER PPh21</p><p class="text-xs text-gray-500">Kategori A, B, C terisi.</p></div></div>
                             </div>
                         </div>
                     </div>
                 `;
             }
 
-            // 2. HRD - Absensi (Live View)
+            // 2. HRD - Absensi (Reads global state)
             if (state.role === 'HRD' && state.menu === 'Absensi') {
                 return `
                     <div class="max-w-6xl mx-auto space-y-6">
-                        <div class="flex justify-between items-end">
-                            <div>
-                                <h2 class="text-2xl font-bold text-navy flex items-center"><i class="fa-solid fa-fingerprint text-gold mr-3"></i> Monitor Absensi Harian</h2>
-                                <p class="text-sm text-gray-500 mt-1">Data tersinkronisasi secara real-time dari PWA Karyawan.</p>
-                            </div>
-                            <div class="text-sm font-bold text-green-600 bg-green-50 border border-green-200 px-4 py-2 rounded-lg flex items-center">
-                                <div class="w-2 h-2 rounded-full bg-green-500 mr-2 animate-ping"></div> Live Monitoring Aktif
-                            </div>
-                        </div>
-                        
+                        <div><h2 class="text-2xl font-bold text-gray-800">Monitor Absensi Geofence</h2><p class="text-sm text-gray-500">Data realtime tersinkronisasi dari PWA Karyawan.</p></div>
                         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                             <table class="w-full text-left text-sm">
-                                <thead class="bg-gray-50 text-navy font-bold border-b border-gray-200">
-                                    <tr><th class="px-6 py-4 uppercase text-[11px] tracking-wider">Karyawan</th><th class="px-6 py-4 uppercase text-[11px] tracking-wider">Waktu Absen</th><th class="px-6 py-4 uppercase text-[11px] tracking-wider">Klien & Lokasi</th><th class="px-6 py-4 uppercase text-[11px] tracking-wider">Status Validasi</th></tr>
+                                <thead class="bg-navy-900 text-white font-semibold">
+                                    <tr><th class="px-6 py-4">Karyawan</th><th class="px-6 py-4">Waktu</th><th class="px-6 py-4">Lokasi & Klien</th><th class="px-6 py-4">Status Geofence</th></tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-100">
-                                    ${state.attendance.map((a, idx) => `
-                                        <tr class="hover:bg-blue-50/50 transition ${idx === 0 && a.name === state.employee.name ? 'bg-green-50/30' : ''}">
-                                            <td class="px-6 py-4">
-                                                <div class="font-bold text-navy">${a.name}</div>
-                                                <div class="text-xs text-gray-500">${a.role}</div>
-                                            </td>
-                                            <td class="px-6 py-4 font-bold text-gray-800">${a.time}</td>
-                                            <td class="px-6 py-4">
-                                                <div class="font-semibold text-gray-700">${a.client}</div>
-                                                <div class="text-[11px] text-gray-500"><i class="fa-solid fa-location-dot text-red-400 mr-1"></i> ${a.method}</div>
-                                            </td>
-                                            <td class="px-6 py-4">
-                                                <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold border border-green-200"><i class="fa-solid fa-check mr-1"></i> ${a.status}</span>
-                                            </td>
+                                    ${state.liveAttendance.map(a => `
+                                        <tr class="bg-blue-50/40 hover:bg-blue-50 transition">
+                                            <td class="px-6 py-4 font-bold text-gray-800">${a.name}</td>
+                                            <td class="px-6 py-4 font-medium text-navy-900">${a.time}</td>
+                                            <td class="px-6 py-4 text-gray-600"><i class="fa-solid fa-map-pin text-red-400 mr-1"></i> ${a.location}<br><span class="text-xs">${a.client}</span></td>
+                                            <td class="px-6 py-4"><span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[11px] font-bold border border-green-200"><i class="fa-solid fa-check mr-1"></i> ${a.status}</span></td>
                                         </tr>
                                     `).join('')}
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 font-bold text-gray-800">Budi Santoso</td><td class="px-6 py-4">07:30 WIB</td><td class="px-6 py-4 text-gray-600"><i class="fa-solid fa-map-pin text-red-400 mr-1"></i> KC Situbondo<br><span class="text-xs">PT Bank Mandiri</span></td><td class="px-6 py-4"><span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[11px] font-bold border border-green-200"><i class="fa-solid fa-check mr-1"></i> Hadir (Dalam Geofence)</span></td>
+                                    </tr>
+                                    ${state.liveAttendance.length === 0 ? `<tr><td colspan="4" class="px-6 py-8 text-center text-gray-400"><i class="fa-solid fa-mobile-screen mb-2 text-2xl"></i><br>Coba lakukan "Absen Masuk" dari Mode PWA Karyawan untuk melihat data masuk ke sini.</td></tr>` : ''}
                                 </tbody>
                             </table>
                         </div>
@@ -450,37 +400,29 @@
                 `;
             }
 
-            // 3. FINANCE - Penggajian
+            // 3. Finance - Penggajian (Trigger state change)
             if (state.role === 'Finance' && state.menu === 'Penggajian') {
                 return `
                     <div class="max-w-6xl mx-auto space-y-6">
-                        <div class="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                            <div>
-                                <h2 class="text-xl font-bold text-navy">Siklus Gaji: Oktober 2026</h2>
-                                <p class="text-sm text-gray-500 mt-1">Status: ${state.isPayrollPublished ? '<span class="text-green-600 font-bold">Terkunci & Terpublikasi</span>' : '<span class="text-orange-500 font-bold">Draft / Review</span>'}</p>
-                            </div>
-                            <button onclick="actionPublishPayroll()" class="${state.isPayrollPublished ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-navy hover:bg-navy-hover text-white shadow-lg border border-navy-800'} px-6 py-3 rounded-lg font-bold text-sm transition flex items-center" ${state.isPayrollPublished ? 'disabled' : ''}>
-                                <i class="fa-solid ${state.isPayrollPublished ? 'fa-lock' : 'fa-paper-plane'} mr-2"></i> 
-                                ${state.isPayrollPublished ? 'Periode Dikunci' : 'Kunci & Publikasi Slip'}
+                        <div class="flex justify-between items-center">
+                            <div><h2 class="text-2xl font-bold text-gray-800">Siklus Penggajian Okt 2026</h2><p class="text-sm text-gray-500">Kalkulasi Prorata, BPJS, PPh21 TER otomatis.</p></div>
+                            <button onclick="financePublishPayroll()" class="${state.isPayrollPublished ? 'bg-gray-400' : 'bg-navy-900 hover:bg-navy-800 shadow-lg'} text-white px-5 py-2.5 rounded-lg font-bold text-sm transition" ${state.isPayrollPublished ? 'disabled' : ''}>
+                                <i class="fa-solid ${state.isPayrollPublished ? 'fa-lock' : 'fa-calculator'} mr-2"></i> ${state.isPayrollPublished ? 'Periode Terkunci & Slip Terbit' : 'Hitung & Publikasi Slip'}
                             </button>
                         </div>
                         
                         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                            <div class="p-4 bg-gray-50 border-b border-gray-200 text-sm font-bold text-gray-700"><i class="fa-solid fa-calculator text-gold mr-2"></i> Preview Kalkulasi (Engine BPJS & PPh21 TER)</div>
                             <table class="w-full text-left text-sm">
-                                <thead class="bg-white text-navy font-bold border-b border-gray-200">
-                                    <tr><th class="px-6 py-4 uppercase text-[11px] tracking-wider">Karyawan</th><th class="px-6 py-4 uppercase text-[11px] tracking-wider text-right">Pendapatan Bruto</th><th class="px-6 py-4 uppercase text-[11px] tracking-wider text-right">Potongan BPJS</th><th class="px-6 py-4 uppercase text-[11px] tracking-wider text-right">PPh21 (TER)</th><th class="px-6 py-4 uppercase text-[11px] tracking-wider text-right text-navy">Take Home Pay</th></tr>
+                                <thead class="bg-gray-50 text-gray-600 font-semibold border-b">
+                                    <tr><th class="px-6 py-4">Karyawan</th><th class="px-6 py-4 text-right">Bruto (Gp+Tnj)</th><th class="px-6 py-4 text-right">Pot BPJS</th><th class="px-6 py-4 text-right">Pot PPh21 TER</th><th class="px-6 py-4 text-right text-navy-900 font-bold">Take Home Pay</th></tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-100">
                                     <tr class="hover:bg-gray-50">
-                                        <td class="px-6 py-4">
-                                            <div class="font-bold text-navy">${state.employee.name}</div>
-                                            <div class="text-xs text-gray-500">${state.employee.client}</div>
-                                        </td>
-                                        <td class="px-6 py-4 text-right font-medium text-gray-800">Rp ${state.employee.gajiPokok.toLocaleString('id-ID')}</td>
-                                        <td class="px-6 py-4 text-right font-medium text-red-500">-Rp ${state.employee.bpjs.toLocaleString('id-ID')}</td>
-                                        <td class="px-6 py-4 text-right font-medium text-red-500">-Rp ${state.employee.pph21TER.toLocaleString('id-ID')}</td>
-                                        <td class="px-6 py-4 text-right font-bold text-green-600 text-base">Rp ${state.employee.thp.toLocaleString('id-ID')}</td>
+                                        <td class="px-6 py-4 font-bold text-gray-800">${state.mainEmployee.name}<br><span class="text-xs font-normal text-gray-500">${state.mainEmployee.client}</span></td>
+                                        <td class="px-6 py-4 text-right">${formatRp(state.mainEmployee.gajiBruto)}</td>
+                                        <td class="px-6 py-4 text-right text-red-500">-${formatRp(state.mainEmployee.bpjs)}</td>
+                                        <td class="px-6 py-4 text-right text-red-500">-${formatRp(state.mainEmployee.pph21)}</td>
+                                        <td class="px-6 py-4 text-right font-bold text-green-600 text-base">${formatRp(state.mainEmployee.netto)}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -489,71 +431,27 @@
                 `;
             }
 
-            // 4. KLIEN - Portal View
-            if (state.role === 'Klien' && state.menu === 'Dashboard Klien') {
-                return `
-                    <div class="max-w-6xl mx-auto space-y-6">
-                        <div class="bg-gradient-to-r from-navy to-navy-700 rounded-2xl p-8 text-white shadow-lg border border-navy-800">
-                            <h2 class="text-3xl font-bold mb-2">Portal Klien PT Bank Mandiri</h2>
-                            <p class="text-gray-300">Pantau kehadiran pekerja alih daya dan status tagihan Anda bulan ini.</p>
-                        </div>
-                        <div class="grid grid-cols-2 gap-6">
-                            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                                <h3 class="font-bold text-navy mb-4 border-b pb-2"><i class="fa-solid fa-users text-gold mr-2"></i> Pekerja Aktif di Lokasi</h3>
-                                <ul class="space-y-3">
-                                    <li class="flex justify-between items-center"><span class="font-semibold text-gray-700">${state.employee.name}</span><span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">${state.employee.role}</span></li>
-                                    <li class="flex justify-between items-center"><span class="font-semibold text-gray-700">Budi Santoso</span><span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Security</span></li>
-                                </ul>
-                            </div>
-                            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                                <h3 class="font-bold text-navy mb-4 border-b pb-2"><i class="fa-solid fa-receipt text-gold mr-2"></i> Tagihan Bulan Ini</h3>
-                                <div class="bg-gray-50 p-4 rounded-lg border border-gray-100 flex justify-between items-center">
-                                    <div>
-                                        <p class="text-xs text-gray-500 font-bold uppercase mb-1">Invoice Okt 2026</p>
-                                        <p class="font-bold text-xl text-navy">Rp 145.500.000</p>
-                                    </div>
-                                    <span class="bg-orange-100 text-orange-700 border border-orange-200 px-3 py-1 rounded-full text-xs font-bold">Unpaid</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            // Default Generic Data Table Generator for other menus
-            const cols = ['ID Ref', 'Deskripsi ' + state.menu, 'Status', 'Aksi'];
-            const rows = [
-                ['REF-001', 'Data operasional untuk modul ' + state.menu, 'Aktif'],
-                ['REF-002', 'Konfigurasi parameter ' + state.menu, 'Aktif']
-            ];
-
-            // Specific overrides for generic tables to make it logical
-            if (state.menu === 'Karyawan') {
-                cols[0] = 'NIK'; cols[1] = 'Nama'; cols[2] = 'Klien';
-                rows[0] = [state.employee.nik, state.employee.name, state.employee.client];
-                rows[1] = ['3512...', 'Budi Santoso', 'PT Bank Mandiri'];
-            }
-
+            // 4. Default Generic Data Table (For all other menus)
+            const tableData = getTableDataForMenu(state.menu);
             return `
                 <div class="max-w-6xl mx-auto space-y-6 fade-in">
                     <div class="flex justify-between items-center border-b border-gray-200 pb-4">
                         <div>
-                            <h2 class="text-2xl font-bold text-navy flex items-center"><i class="fa-solid ${icons[state.menu] || 'fa-table'} text-gold mr-3"></i> ${state.menu}</h2>
-                            <p class="text-sm text-gray-500 mt-1">Manajemen data master dan operasional sistem.</p>
+                            <h2 class="text-2xl font-bold text-gray-800 flex items-center"><i class="fa-solid ${icons[state.menu]} text-gold mr-3"></i> ${state.menu}</h2>
+                            <p class="text-sm text-gray-500 mt-1">Data master dan operasional untuk modul ini.</p>
                         </div>
-                        <button class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-bold hover:bg-gray-50 shadow-sm"><i class="fa-solid fa-plus text-gold mr-2"></i> Tambah Data</button>
+                        <button class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-bold hover:bg-gray-50 shadow-sm"><i class="fa-solid fa-file-export mr-2"></i> Ekspor</button>
                     </div>
 
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                         <table class="w-full text-left text-sm">
-                            <thead class="bg-gray-50 text-navy font-bold border-b border-gray-200">
-                                <tr>${cols.map(c => `<th class="px-6 py-4 uppercase tracking-wider text-[11px]">${c}</th>`).join('')}</tr>
+                            <thead class="bg-gray-50 text-gray-600 font-bold border-b border-gray-200">
+                                <tr>${tableData.cols.map(c => `<th class="px-6 py-4 uppercase tracking-wider text-[11px]">${c}</th>`).join('')}</tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
-                                ${rows.map(row => `
+                                ${tableData.rows.map(row => `
                                     <tr class="hover:bg-gray-50 transition">
-                                        ${row.map((cell, idx) => `<td class="px-6 py-4 ${idx === 0 ? 'font-bold text-gray-800' : ''} ${cell === 'Aktif' ? 'text-green-600 font-bold' : ''}">${cell}</td>`).join('')}
-                                        <td class="px-6 py-4"><button class="text-navy hover:text-gold"><i class="fa-solid fa-pen-to-square"></i></button></td>
+                                        ${row.map((cell, idx) => `<td class="px-6 py-4 ${idx === 0 ? 'font-bold text-navy-900' : ''} ${cell === 'Aktif' ? 'text-green-600 font-bold' : ''}">${cell}</td>`).join('')}
                                     </tr>
                                 `).join('')}
                             </tbody>
@@ -563,218 +461,150 @@
             `;
         }
 
-        function renderPWAContainer() {
+        function renderPWA() {
             return `
-                <div class="h-full w-full bg-navy-800 flex flex-col items-center justify-center relative p-4 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
-                    <!-- Overlay switch back button -->
-                    <div class="absolute top-6 left-6 z-10">
-                        <button onclick="setRole('Super Admin')" class="bg-white/10 hover:bg-white/20 backdrop-blur border border-white/20 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition flex items-center shadow-lg">
-                            <i class="fa-solid fa-arrow-left mr-2"></i> Kembali ke Backoffice
+                <div class="h-full w-full bg-gray-900 flex flex-col items-center justify-center relative p-4">
+                    <div class="absolute top-6 left-6 text-white z-10 flex space-x-4">
+                        <button onclick="setRole('Super Admin')" class="bg-white/10 hover:bg-white/20 backdrop-blur border border-white/20 text-white px-4 py-2 rounded-lg text-sm font-bold transition flex items-center">
+                            <i class="fa-solid fa-arrow-left mr-2"></i> Keluar PWA (Ke Backoffice)
                         </button>
                     </div>
-                    
-                    <div class="absolute top-6 right-6 z-10 text-right text-white/50 text-xs">
-                        <p>Simulasi PWA Berjalan.</p>
-                        <p>Data tersinkronisasi ke Global State.</p>
-                    </div>
 
-                    <!-- The Mobile Mockup -->
-                    <div class="mobile-mockup fade-in">
+                    <div class="mobile-container shadow-2xl">
                         <div class="mobile-notch"></div>
                         
-                        <!-- App Header -->
-                        <div class="bg-navy pt-12 pb-5 px-6 text-white shrink-0 relative z-10 shadow-md">
-                            <div class="flex justify-between items-center">
+                        <!-- PWA Header -->
+                        <div class="bg-navy-900 pt-12 pb-6 px-6 text-white shrink-0 relative z-10 shadow-md">
+                            <div class="flex justify-between items-start">
                                 <div>
-                                    <p class="text-[10px] text-gold font-bold tracking-widest uppercase mb-1">${state.employee.client}</p>
-                                    <h2 class="font-bold text-lg leading-tight">${state.employee.name}</h2>
-                                    <p class="text-[11px] text-gray-300 mt-1 opacity-80">${state.employee.role}</p>
+                                    <p class="text-[10px] text-gold font-bold tracking-widest uppercase mb-1">${state.mainEmployee.client}</p>
+                                    <h2 class="font-bold text-xl">${state.mainEmployee.name}</h2>
+                                    <p class="text-xs text-gray-400 mt-1"><i class="fa-solid fa-id-badge mr-1"></i> ${state.mainEmployee.position}</p>
                                 </div>
-                                <div class="w-12 h-12 bg-white/10 rounded-full border border-gold/50 flex items-center justify-center backdrop-blur">
-                                    <i class="fa-solid fa-user text-gold"></i>
+                                <div class="w-12 h-12 bg-gray-800 rounded-full border-2 border-gold flex items-center justify-center overflow-hidden">
+                                    <i class="fa-solid fa-user text-xl text-gray-400"></i>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- App Content -->
-                        <div class="flex-1 bg-gray-50 overflow-y-auto pb-24 p-5 custom-scrollbar relative">
-                            ${renderPWATabContent()}
+                        <!-- PWA Content -->
+                        <div class="flex-1 bg-gray-50 overflow-y-auto pb-24 p-5 custom-scrollbar fade-in">
+                            ${getPWAContent()}
                         </div>
 
-                        <!-- Bottom Navigation -->
-                        <div class="absolute bottom-0 w-full bg-white border-t border-gray-200 flex justify-around items-center h-[72px] pb-3 z-20 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)] rounded-b-[2rem]">
-                            ${['Beranda', 'Absen', 'Slip Gaji'].map(tab => `
-                                <button onclick="state.pwaTab='${tab}'; render()" class="flex flex-col items-center w-full space-y-1 transition ${state.pwaTab === tab ? 'text-navy font-bold' : 'text-gray-400 hover:text-gray-600'}">
-                                    <i class="fa-solid ${tab === 'Beranda' ? 'fa-house' : tab === 'Absen' ? 'fa-location-dot' : 'fa-envelope-open-text'} text-xl ${state.pwaTab === tab ? '-mt-2 text-gold transition-all duration-300' : ''}"></i>
+                        <!-- PWA Bottom Nav -->
+                        <div class="absolute bottom-0 w-full bg-white border-t border-gray-200 flex justify-around items-center h-16 pb-1 z-20">
+                            ${['Beranda', 'Pengajuan', 'Slip'].map(tab => `
+                                <button onclick="state.pwaTab='${tab}'; render()" class="flex flex-col items-center w-full space-y-1 transition ${state.pwaTab === tab ? 'text-navy-900 font-bold' : 'text-gray-400 hover:text-gray-600'}">
+                                    <i class="fa-solid ${tab === 'Beranda' ? 'fa-fingerprint' : tab === 'Pengajuan' ? 'fa-file-signature' : 'fa-envelope-open-text'} text-lg ${state.pwaTab === tab ? '-mt-1' : ''} transition-all"></i>
                                     <span class="text-[10px]">${tab}</span>
                                 </button>
                             `).join('')}
                         </div>
-                        
-                        <div class="mobile-indicator"></div>
                     </div>
                 </div>
             `;
         }
 
-        function renderPWATabContent() {
+        function getPWAContent() {
             if (state.pwaTab === 'Beranda') {
+                const hasAbsen = state.liveAttendance.some(a => a.name === state.mainEmployee.name);
                 return `
-                    <div class="space-y-4 fade-in">
-                        <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-4">
-                            <div class="w-12 h-12 bg-blue-50 text-navy rounded-xl flex items-center justify-center text-xl font-bold"><i class="fa-solid fa-clock"></i></div>
-                            <div>
-                                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wide">Shift Hari Ini</p>
-                                <p class="font-bold text-gray-800 text-sm">Shift Pagi (08:00 - 16:00)</p>
-                            </div>
+                    <div class="space-y-5">
+                        <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                            <div><p class="text-xs text-gray-500">Jadwal Hari Ini</p><p class="font-bold text-navy-900 text-sm">Shift Pagi (08:00 - 16:00)</p></div>
+                            <div class="bg-blue-50 text-blue-600 w-10 h-10 rounded-full flex items-center justify-center"><i class="fa-solid fa-clock"></i></div>
                         </div>
-                        <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-4">
-                            <div class="w-12 h-12 bg-gold/10 text-gold rounded-xl flex items-center justify-center text-xl font-bold"><i class="fa-solid fa-building"></i></div>
-                            <div>
-                                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wide">Lokasi Penempatan</p>
-                                <p class="font-bold text-gray-800 text-sm">${state.employee.location}</p>
-                            </div>
+
+                        <div class="bg-gray-800 rounded-3xl h-64 relative flex flex-col items-center justify-center overflow-hidden border-4 border-white shadow-md">
+                            <div class="absolute inset-0 opacity-30 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+                            <div class="w-16 h-16 bg-blue-500/20 rounded-full animate-ping absolute"></div>
+                            <i class="fa-solid fa-location-crosshairs text-4xl text-blue-400 mb-3 relative z-10"></i>
+                            <span class="bg-black/60 text-white text-[10px] px-3 py-1.5 rounded-full relative z-10 backdrop-blur"><i class="fa-solid fa-map-pin text-green-400 mr-1"></i> ${state.mainEmployee.location} (Radius: 12m)</span>
                         </div>
-                        <div class="mt-6">
-                            <h3 class="text-xs font-bold text-gray-800 mb-3 uppercase tracking-wide">Aktivitas Terakhir</h3>
-                            <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center">
-                                <p class="text-xs text-gray-500 italic">Belum ada pengajuan izin/cuti.</p>
+
+                        ${hasAbsen ? `
+                            <div class="bg-green-50 border border-green-200 p-4 rounded-2xl text-center shadow-sm fade-in">
+                                <i class="fa-solid fa-circle-check text-green-500 text-3xl mb-2"></i>
+                                <p class="font-bold text-green-800 text-sm">Berhasil Absen Masuk</p>
+                                <p class="text-[11px] text-green-600 mt-1">Tercatat di Server Adhikara</p>
                             </div>
-                        </div>
+                        ` : `
+                            <button onclick="pwaAbsenMasuk()" class="bg-navy-900 hover:bg-navy-800 text-white font-bold py-4 rounded-2xl w-full shadow-lg flex justify-center items-center active:scale-95 transition">
+                                <i class="fa-solid fa-fingerprint text-gold mr-2 text-lg"></i> Absen Masuk Sekarang
+                            </button>
+                        `}
                     </div>
                 `;
             }
 
-            if (state.pwaTab === 'Absen') {
-                const hasAbsen = state.attendance.some(a => a.name === state.employee.name);
-                return `
-                    <div class="space-y-5 fade-in flex flex-col h-full">
-                        <div class="text-center mt-2 mb-4">
-                            <h3 class="font-bold text-navy text-lg">Absensi Geofence</h3>
-                            <p class="text-xs text-gray-500">Pastikan Anda berada di lokasi.</p>
-                        </div>
-
-                        <!-- Map/GPS Simulation UI -->
-                        <div class="bg-navy-800 rounded-3xl h-64 relative flex flex-col items-center justify-center overflow-hidden border-4 border-white shadow-lg mx-2">
-                            <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
-                            
-                            <!-- Radar Animation -->
-                            <div class="w-24 h-24 border border-gold/30 rounded-full absolute animate-ping opacity-50"></div>
-                            <div class="w-16 h-16 border border-gold/50 rounded-full absolute animate-ping opacity-75"></div>
-                            
-                            <i class="fa-solid fa-location-crosshairs text-5xl text-gold mb-4 relative z-10 drop-shadow-md"></i>
-                            <div class="bg-white/10 backdrop-blur border border-white/20 text-white text-[11px] px-4 py-2 rounded-full relative z-10 flex items-center shadow-lg">
-                                <div class="w-2 h-2 bg-green-400 rounded-full mr-2 shadow-[0_0_5px_#4ade80]"></div>
-                                Akurasi GPS: 5 Meter
-                            </div>
-                        </div>
-
-                        <div class="flex-1 flex items-end pb-4">
-                            ${hasAbsen ? `
-                                <div class="w-full bg-green-50 border border-green-200 p-5 rounded-2xl text-center shadow-sm fade-in">
-                                    <i class="fa-solid fa-circle-check text-green-500 text-4xl mb-2"></i>
-                                    <p class="font-bold text-green-800 text-base">Hadir Tercatat</p>
-                                    <p class="text-[11px] text-green-600 mt-1">Data telah terkirim ke HRD.</p>
-                                </div>
-                            ` : `
-                                <button onclick="actionAbsenMasuk()" class="w-full bg-navy hover:bg-navy-hover text-white font-bold py-4 rounded-2xl shadow-xl flex justify-center items-center active:scale-95 transition border border-navy-700 relative overflow-hidden group">
-                                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-                                    <i class="fa-solid fa-fingerprint text-gold mr-3 text-2xl"></i> <span class="text-base tracking-wide">Absen Masuk</span>
-                                </button>
-                            `}
-                        </div>
-                    </div>
-                `;
-            }
-
-            if (state.pwaTab === 'Slip Gaji') {
+            if (state.pwaTab === 'Slip') {
                 if (!state.pwaPinUnlocked) {
                     return `
-                        <div class="flex flex-col items-center justify-center h-full pt-10 text-center px-4 fade-in">
-                            <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center text-navy mb-6 shadow-sm border border-gray-100">
-                                <i class="fa-solid fa-shield-halved text-4xl"></i>
-                            </div>
-                            <h3 class="font-bold text-navy text-xl mb-2">Verifikasi Keamanan</h3>
-                            <p class="text-xs text-gray-500 mb-8 leading-relaxed">Masukkan 6 digit PIN untuk membuka slip gaji bulan ini.<br><span class="font-bold text-navy mt-2 block bg-gray-100 py-1 rounded">Gunakan PIN: 123456</span></p>
+                        <div class="flex flex-col items-center justify-center h-full pt-16 text-center px-4 fade-in">
+                            <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center text-gray-400 mb-4 shadow-inner"><i class="fa-solid fa-lock text-2xl"></i></div>
+                            <h3 class="font-bold text-gray-800 text-lg mb-1">Verifikasi PIN</h3>
+                            <p class="text-xs text-gray-500 mb-6 leading-relaxed">Masukkan 6 digit PIN rahasia untuk membuka slip gaji Anda.<br><b class="text-navy-900 mt-1 block">PIN Demo: 123456</b></p>
                             
-                            <input type="password" id="pwa-pin" maxlength="6" class="w-full bg-white border-2 ${state.pwaPinError ? 'border-red-500' : 'border-gray-200 focus:border-navy'} rounded-2xl p-4 text-center tracking-[1em] font-bold text-2xl outline-none transition mb-3 shadow-inner" placeholder="••••••">
-                            ${state.pwaPinError ? `<p class="text-[11px] text-red-500 font-bold mb-4 animate-bounce">PIN tidak valid.</p>` : `<div class="mb-4 h-4"></div>`}
+                            <input type="password" id="pin-input" maxlength="6" class="w-full bg-white border-2 ${state.pwaPinError ? 'border-red-500' : 'border-gray-300'} rounded-xl p-3 text-center tracking-[1em] font-bold text-xl focus:border-navy-900 outline-none transition mb-2 shadow-sm" placeholder="••••••">
+                            ${state.pwaPinError ? `<p class="text-[10px] text-red-500 font-bold mb-4">PIN Salah, silakan coba lagi.</p>` : `<div class="mb-4 h-4"></div>`}
                             
-                            <button onclick="actionVerifyPin()" class="bg-navy text-white font-bold py-4 rounded-2xl w-full shadow-lg active:scale-95 transition flex justify-center items-center">
-                                <i class="fa-solid fa-unlock-keyhole mr-2 text-gold"></i> Buka Slip
-                            </button>
+                            <button onclick="pwaVerifyPin()" class="bg-navy-900 text-white font-bold py-3.5 rounded-xl w-full shadow active:scale-95 transition">Buka Slip Gaji</button>
                         </div>
                     `;
                 }
 
                 if (!state.isPayrollPublished) {
                     return `
-                        <div class="flex flex-col items-center justify-center h-full pt-24 text-center px-6 fade-in">
-                            <i class="fa-regular fa-folder-open text-6xl text-gray-300 mb-5"></i>
-                            <h3 class="font-bold text-navy text-lg">Slip Belum Tersedia</h3>
-                            <p class="text-xs text-gray-500 mt-2 leading-relaxed">Finance belum menerbitkan slip untuk periode ini. Silakan simulasi lewat Backoffice role Finance.</p>
+                        <div class="flex flex-col items-center justify-center h-full pt-20 text-center px-4 fade-in">
+                            <i class="fa-regular fa-folder-open text-5xl text-gray-300 mb-4"></i>
+                            <h3 class="font-bold text-gray-800 text-base">Belum Ada Slip Bulan Ini</h3>
+                            <p class="text-xs text-gray-500 mt-2">Finance belum menerbitkan slip untuk periode ini. Simulasikan dengan menekan tombol "Hitung & Publikasi" di role Finance.</p>
                         </div>
                     `;
                 }
 
                 return `
-                    <div class="space-y-5 fade-in pb-4">
-                        <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-                            <div>
-                                <h3 class="font-bold text-navy text-sm">Oktober 2026</h3>
-                                <p class="text-[10px] text-green-600 font-bold"><i class="fa-solid fa-circle-check mr-1"></i> Terverifikasi</p>
-                            </div>
-                            <button onclick="state.pwaPinUnlocked=false; render()" class="bg-gray-100 hover:bg-gray-200 text-gray-600 p-2 rounded-lg text-[10px] font-bold transition"><i class="fa-solid fa-lock"></i></button>
+                    <div class="space-y-4 fade-in">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-bold text-navy-900 text-sm">Periode: Oktober 2026</h3>
+                            <button onclick="state.pwaPinUnlocked=false; render()" class="bg-red-50 text-red-600 px-2 py-1 rounded text-[10px] font-bold"><i class="fa-solid fa-lock mr-1"></i> Kunci</button>
                         </div>
                         
-                        <div class="bg-white p-6 rounded-3xl shadow-lg border border-gray-100 relative overflow-hidden">
-                            <!-- Watermark -->
-                            <i class="fa-solid fa-stamp absolute -right-4 -bottom-4 text-8xl text-gray-50 rotate-[-15deg] pointer-events-none"></i>
-                            
-                            <div class="text-center border-b-2 border-dashed border-gray-100 pb-5 mb-5 relative z-10">
-                                <h4 class="font-bold text-navy text-sm tracking-wide">PT ADHIKARA TALENTA BANGSA</h4>
-                                <p class="text-[9px] text-gray-400 uppercase tracking-widest mt-1 font-bold">Slip Gaji Konfidensial</p>
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
+                            <div class="text-center border-b border-dashed border-gray-200 pb-4 mb-4">
+                                <h4 class="font-bold text-navy-900 text-xs">PT ADHIKARA TALENTA BANGSA</h4>
+                                <p class="text-[9px] text-gray-400 uppercase tracking-widest mt-1">Slip Gaji Rahasia</p>
                             </div>
                             
-                            <div class="space-y-5 relative z-10">
+                            <div class="space-y-4 text-xs">
                                 <div>
-                                    <p class="text-[10px] font-bold text-navy uppercase tracking-wider mb-3 bg-gray-50 p-2 rounded">Penerimaan</p>
-                                    <div class="flex justify-between items-center px-1">
-                                        <span class="text-xs text-gray-600 font-medium">Gaji Pokok & Tunj.</span>
-                                        <span class="font-bold text-gray-800 text-sm">Rp ${state.employee.gajiPokok.toLocaleString('id-ID')}</span>
-                                    </div>
+                                    <p class="text-[9px] font-bold text-gray-400 uppercase mb-2">Penerimaan</p>
+                                    <div class="flex justify-between border-b border-gray-50 pb-1"><span>Gaji Pokok & Tunj.</span><span class="font-bold text-navy-900">${formatRp(state.mainEmployee.gajiBruto)}</span></div>
                                 </div>
                                 <div>
-                                    <p class="text-[10px] font-bold text-red-700 uppercase tracking-wider mb-3 bg-red-50 p-2 rounded">Potongan</p>
-                                    <div class="space-y-2 px-1">
-                                        <div class="flex justify-between items-center">
-                                            <span class="text-xs text-gray-600 font-medium">BPJS Ket. & Kes.</span>
-                                            <span class="text-red-500 font-medium text-xs">-Rp ${state.employee.bpjs.toLocaleString('id-ID')}</span>
-                                        </div>
-                                        <div class="flex justify-between items-center">
-                                            <span class="text-xs text-gray-600 font-medium">PPh21 (TER A)</span>
-                                            <span class="text-red-500 font-medium text-xs">-Rp ${state.employee.pph21TER.toLocaleString('id-ID')}</span>
-                                        </div>
-                                    </div>
+                                    <p class="text-[9px] font-bold text-gray-400 uppercase mb-2">Potongan</p>
+                                    <div class="flex justify-between border-b border-gray-50 pb-1 mb-1"><span>BPJS Ket. (JHT/JP)</span><span class="text-red-500">-${formatRp(state.mainEmployee.bpjs)}</span></div>
+                                    <div class="flex justify-between border-b border-gray-50 pb-1"><span>PPh21 (TER A)</span><span class="text-red-500">-${formatRp(state.mainEmployee.pph21)}</span></div>
                                 </div>
                             </div>
 
-                            <div class="mt-6 bg-navy rounded-2xl p-5 text-center text-white relative overflow-hidden shadow-inner border border-navy-700 z-10">
-                                <div class="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-white/5 blur-xl"></div>
-                                <p class="text-[10px] font-bold text-gold uppercase tracking-widest mb-1 opacity-90">Take Home Pay</p>
-                                <p class="text-2xl font-bold tracking-tight">Rp ${state.employee.thp.toLocaleString('id-ID')}</p>
+                            <div class="mt-6 bg-navy-900 rounded-xl p-4 text-center text-white relative overflow-hidden shadow-md">
+                                <div class="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-white/10"></div>
+                                <p class="text-[9px] font-bold text-gold uppercase tracking-widest mb-1 relative z-10">Take Home Pay</p>
+                                <p class="text-xl font-bold relative z-10">${formatRp(state.mainEmployee.netto)}</p>
                             </div>
+                            
+                            <button class="w-full mt-4 border border-gray-200 text-gray-600 font-bold py-2 rounded-lg text-xs hover:bg-gray-50 transition"><i class="fa-solid fa-download mr-1"></i> Unduh PDF</button>
                         </div>
-                        
-                        <button class="w-full bg-white border-2 border-navy text-navy font-bold py-3.5 rounded-2xl text-sm hover:bg-gray-50 transition shadow-sm flex justify-center items-center">
-                            <i class="fa-solid fa-file-pdf mr-2 text-red-500"></i> Unduh PDF Slip
-                        </button>
                     </div>
                 `;
             }
+
+            return `<div class="p-4 text-center text-gray-500 text-xs mt-10">Fitur ${state.pwaTab} sedang dalam pengembangan simulasi.</div>`;
         }
 
-        // Initialize First Render
+        // Initialize App
         window.onload = render;
     </script>
 </body>
